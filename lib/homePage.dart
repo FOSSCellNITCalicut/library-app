@@ -18,7 +18,7 @@ class _HomePageState extends State<HomePage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(12.0),
             child: SearchAnchor(
               builder: (BuildContext context, SearchController controller) {
                 return SearchBar(
@@ -40,58 +40,137 @@ class _HomePageState extends State<HomePage> {
             ),
 
           ),
-          Card(
-            color: Colors.purple.shade50,
-            shape: RoundedRectangleBorder(
+          Padding(
+              padding: EdgeInsets.all(12.0),
+            child: Card(
+              color: Colors.deepPurple.shade50,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)
+              ),
+              elevation: 1,
+              child: Container(
+                height: 100,
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: const [
+                          Text(
+                            "Book sharing center",
+                            style: TextStyle(
+                              fontSize: 20,
+                            ),
+                          ),
+                          SizedBox(height: 8,),
+                          Text(
+                            "Explore now",
+                            style: TextStyle(
+                                fontSize: 16
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                    ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.asset(
+                          'assets/book_sharing.jpg',
+                          height: 80,
+                          width: 80,
+                          fit: BoxFit.cover,
+                        )
+                    )
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Expanded(child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: StatWidget(),
+            )
+          )
+
+        ],
+      ),
+    );
+  }
+}
+
+class StatWidget extends StatefulWidget {
+  const StatWidget({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _StatWidgetState();
+
+}
+
+class _StatWidgetState extends State<StatWidget>{
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text("Your stats:", style: TextStyle(fontSize: 18),),
+          SizedBox(height: 16,),
+          Container(
+            padding: EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.deepPurple.shade50,
               borderRadius: BorderRadius.circular(16)
             ),
-            elevation: 3,
-            child: Container(
-              height: 120,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Text(
-                          "Book sharing center",
-                          style: TextStyle(
-                            fontSize: 20,
-                          ),
-                        ),
-                        SizedBox(height: 8,),
-                        Text(
-                          "Explore now",
-                          style: TextStyle(
-                            fontSize: 16
-                          ),
-                        )
-                      ],
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("You have taken 3 out of 5 books", style: TextStyle(fontSize: 14),), // TODO : get from backend
+                SizedBox(height: 8,),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(10),
+                  child: LinearProgressIndicator(
+                    value: 0.6, // TODO : process value from backend
+                    minHeight: 8,
+                    backgroundColor: Colors.deepPurple.shade100,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+                  ),
+                ),
+
+                SizedBox(height: 16,),
+                Text("You have to return",
+                  style: TextStyle(color: Colors.grey[700]),
+                ),
+                SizedBox(height: 4,),
+                Text("Book 1", // TODO : data from backend
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                SizedBox(height: 8,),
+                Text("due date", style: TextStyle(color: Colors.grey.shade700),),
+                SizedBox(height: 12,),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: TextButton(
+                    onPressed: () {
+                      // TODO : implement renew
+                    },
+                    child: Text("Renew",
+                    style: TextStyle(color: Colors.deepPurple),
                     ),
                   ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      'assets/book_sharing.jpg',
-                      height: 80,
-                      width: 80,
-                      fit: BoxFit.cover,
-                    )
-                  )
-                ],
-              ),
+                )
+              ],
             ),
           )
         ],
       ),
     );
   }
+
 }
 
 class BookSearchDelegate extends SearchDelegate<String> {
