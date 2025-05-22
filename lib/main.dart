@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:library_nitc/homePage.dart';
+import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
 void main() {
   runApp(const MyApp());
@@ -49,25 +50,51 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
-    return Scaffold(
-      bottomNavigationBar: NavigationBar(
-          onDestinationSelected: (int index){
-            setState(() {
-              currentPageIndex = index;
-            });
-          },
-          selectedIndex: currentPageIndex,
-          destinations: const <Widget>[
-            NavigationDestination(icon: Icon(Icons.home_outlined), label: "HOME"),
-            NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: "CHATBOT"),
-            NavigationDestination(icon: Icon(Icons.info_outline), label: "ABOUT"),
-            NavigationDestination(icon: Icon(Icons.account_circle_rounded), label: "PROFILE")
-          ],
-      ),
-      body: <Widget>[ // TODO : Add remaining pages
-        SafeArea(child: HomePage())
-      ][currentPageIndex],
+    return PersistentTabView(
+      tabs: [
+        // TODO : replace screen argument in each PersistentTabConfig to match required page
+        PersistentTabConfig(
+          screen: SafeArea(child: HomePage()),
+          item: ItemConfig(icon: Icon(Icons.home_outlined), title: "HOME", activeForegroundColor: Colors.black)
+        ),
+        PersistentTabConfig(
+            screen: SafeArea(child: HomePage()),
+            item: ItemConfig(icon: Icon(Icons.chat_bubble_outline), title: "CHATBOT", activeForegroundColor: Colors.black)
+        ),
+        PersistentTabConfig(
+            screen: SafeArea(child: HomePage()),
+            item: ItemConfig(icon: Icon(Icons.info_outline), title: "ABOUT", activeForegroundColor: Colors.black)
+        ),
+        PersistentTabConfig(
+            screen: SafeArea(child: HomePage()),
+            item: ItemConfig(icon: Icon(Icons.account_circle_rounded), title: "PROFILE", activeForegroundColor: Colors.black)
+        ),
+      ],
+      navBarBuilder: (navBarConfig) => Style7BottomNavBar(
+        navBarConfig: navBarConfig,
+        navBarDecoration: NavBarDecoration(
+          color: Colors.deepPurple.shade50,
+
+        ),
+      ) ,
     );
   }
 
+  // bottomNavigationBar: NavigationBar(
+  // onDestinationSelected: (int index){
+  // setState(() {
+  // currentPageIndex = index;
+  // });
+  // },
+  // selectedIndex: currentPageIndex,
+  // destinations: const <Widget>[
+  // NavigationDestination(icon: Icon(Icons.home_outlined), label: "HOME"),
+  // NavigationDestination(icon: Icon(Icons.chat_bubble_outline), label: "CHATBOT"),
+  // NavigationDestination(icon: Icon(Icons.info_outline), label: "ABOUT"),
+  // NavigationDestination(icon: Icon(Icons.account_circle_rounded), label: "PROFILE")
+  // ],
+  // ),
+  // body: <Widget>[ // TODO : Add remaining pages
+  // SafeArea(child: HomePage())
+  // ][currentPageIndex],
 }
