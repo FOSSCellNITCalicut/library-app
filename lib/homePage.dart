@@ -1,10 +1,12 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:library_nitc/bookPage.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
+
 class HomePage extends StatefulWidget{
-  const HomePage({super.key});
+  const HomePage({super.key,});
 
   @override
   State<StatefulWidget> createState() => _HomePageState();
@@ -418,46 +420,54 @@ class _BookJournalToggleState extends State<BookJournalToggle> {
 }
 
 class SearchResults extends StatelessWidget {
-  const SearchResults({super.key});
+  const SearchResults({super.key,});
 
   @override
   Widget build(BuildContext context) {
     return ListView.builder(
       itemCount: 7, // TODO : from backend
       itemBuilder: (BuildContext context, int index) {
-        return SizedBox(
-          height: 178,
-          child: Padding(
-            padding: EdgeInsets.all(8),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(14),
-                  child: Image.asset("assets/stats_book_temp.png"), // TODO build dynamically from search results
-                ),
-                Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Heading", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 22),),
-                      Text("Author"),
-                      Expanded(child: SizedBox()),
-                      SizedBox(width: MediaQuery.sizeOf(context).width - 183.5, // not a fan of this - 183 but eh whatever works
-                        child: Row(
-                          children: [
-                            Text("Availability"),
-                            Spacer(),
-                            Text("View More")
-                          ],
-                        ),
-                      )
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () {
+            pushWithNavBar(context, MaterialPageRoute(builder: (context) => BookPage()));
 
-                    ],
+            // pushScreenWithNavBar(context, BookPage());
+          },
+          child: SizedBox(
+            height: 178,
+            child: Padding(
+              padding: EdgeInsets.all(8),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Image.asset("assets/stats_book_temp.png"), // TODO build dynamically from search results
                   ),
-                )
+                  Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Heading", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 22),),
+                        Text("Author"),
+                        Expanded(child: SizedBox()),
+                        SizedBox(width: MediaQuery.sizeOf(context).width - 183.5, // not a fan of this - 183 but eh whatever works
+                          child: Row(
+                            children: [
+                              Text("Availability"),
+                              Spacer(),
+                              Text("View More")
+                            ],
+                          ),
+                        )
 
-              ],
+                      ],
+                    ),
+                  )
+
+                ],
+              ),
             ),
           ),
         );

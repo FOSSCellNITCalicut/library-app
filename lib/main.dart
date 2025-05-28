@@ -2,9 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:library_nitc/homePage.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
-void main() {
+import 'package:intl/intl_standalone.dart' if (dart.library.html) 'package:intl/intl_browser.dart';
+
+import 'globals.dart';
+
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await findSystemLocale();
+  // await initializeDateFormatting();
   runApp(const MyApp());
 }
+
+// void main() {
+//   runApp(const MyApp());
+// }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -50,7 +61,9 @@ class _MainPageState extends State<MainPage> {
   @override
   Widget build(BuildContext context) {
     final ThemeData theme = Theme.of(context);
+
     return PersistentTabView(
+      controller: persistentTabController,
       tabs: [
         // TODO : replace screen argument in each PersistentTabConfig to match required page
         PersistentTabConfig(
