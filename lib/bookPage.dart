@@ -304,7 +304,7 @@ class _PlaceHoldScreenState extends State<PlaceHoldScreen> {
                       print("$pickupTime, $pickupDate");
                       // TODO : send data to backend
   
-                      pushScreenWithNavBar(context, ConfirmedBookingPage());
+                      pushScreenWithNavBar(context, ConfirmedBookingPage()); // not a huge fan of this method, ie creating a new screen
                       
                       // showDialog(
                       //   context: context,

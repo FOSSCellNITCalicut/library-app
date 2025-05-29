@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:library_nitc/homePage.dart';
+import 'package:library_nitc/loadingScreen.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
 import 'package:intl/intl_standalone.dart' if (dart.library.html) 'package:intl/intl_browser.dart';
@@ -43,7 +44,7 @@ class MyApp extends StatelessWidget {
         // tested with just a hot reload.
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: MainPage(),
+      home: LoadingScreen(),
     );
   }
 }
