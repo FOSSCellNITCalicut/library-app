@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:library_nitc/authScreen.dart';
 import 'package:library_nitc/homePage.dart';
 import 'package:library_nitc/main.dart';
 
@@ -22,7 +23,7 @@ class _LoadingScreenState extends State<LoadingScreen> with SingleTickerProvider
 
     Future.delayed(Duration(seconds: 2), () { // TODO : replace this with inititalizing db or whatever
       Navigator.of(context).pushReplacement(MaterialPageRoute(
-        builder: (_) => MainPage()
+        builder: (_) => AuthScreen()
       ));
     });
 
