@@ -24,7 +24,7 @@ android {
         applicationId = "in.ac.nitc.library_nitc"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = flutter.minSdkVersion
+        minSdk = 21
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -42,3 +42,7 @@ android {
 flutter {
     source = "../.."
 }
+
+//dependencies {
+//    implementation "dev.shreyaspatil.EasyUpiPayment:EasyUpiPayment:3.0.3"
+//}

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:library_nitc/homePage.dart';
 import 'package:library_nitc/loadingScreen.dart';
+import 'package:library_nitc/profilePage.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
 import 'package:intl/intl_standalone.dart' if (dart.library.html) 'package:intl/intl_browser.dart';
@@ -42,7 +43,7 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
       ),
       home: LoadingScreen(),
     );
@@ -80,14 +81,14 @@ class _MainPageState extends State<MainPage> {
             item: ItemConfig(icon: Icon(Icons.info_outline), title: "ABOUT", activeForegroundColor: Colors.black)
         ),
         PersistentTabConfig(
-            screen: SafeArea(child: HomePage()),
+            screen: SafeArea(child: ProfilePage()),
             item: ItemConfig(icon: Icon(Icons.account_circle_rounded), title: "PROFILE", activeForegroundColor: Colors.black)
         ),
       ],
       navBarBuilder: (navBarConfig) => Style7BottomNavBar(
         navBarConfig: navBarConfig,
         navBarDecoration: NavBarDecoration(
-          color: Colors.deepPurple.shade50,
+          color: Colors.purple.shade50,
 
         ),
       ) ,

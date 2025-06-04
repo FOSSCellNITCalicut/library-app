@@ -156,7 +156,7 @@ class HoldingsList extends StatelessWidget {
       itemCount: 7, // TODO backend
       itemBuilder: (BuildContext context, int index) {
         return Container(
-          color: Colors.deepPurple.shade50,
+          color: Colors.purple.shade50,
           padding: EdgeInsets.all(12),
           height: 85,
           child: Column(
@@ -246,7 +246,7 @@ class _PlaceHoldScreenState extends State<PlaceHoldScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(
-                              color: Colors.deepPurple, width: 1
+                              color: Colors.purple, width: 1
                           )
                       )
                   ),
@@ -266,7 +266,7 @@ class _PlaceHoldScreenState extends State<PlaceHoldScreen> {
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
-                        color: Colors.deepPurple, width: 1
+                        color: Colors.purple, width: 1
                       )
                     )
                   ),

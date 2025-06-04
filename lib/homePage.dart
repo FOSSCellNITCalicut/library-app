@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: EdgeInsets.all(12.0),
               child: Card(
-                color: Colors.deepPurple.shade50,
+                color: Colors.purple.shade50,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16)
                 ),
@@ -166,7 +166,7 @@ class _StatWidgetState extends State<StatWidget>{
           Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.deepPurple.shade50,
+              color: Colors.purple.shade50,
               borderRadius: BorderRadius.circular(16)
             ),
             child: Column(
@@ -179,8 +179,8 @@ class _StatWidgetState extends State<StatWidget>{
                   child: LinearProgressIndicator(
                     value: 0.6, // TODO : process value from backend
                     minHeight: 8,
-                    backgroundColor: Colors.deepPurple.shade100,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.deepPurple),
+                    backgroundColor: Colors.purple.shade100,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
                   ),
                 ),
 
@@ -202,7 +202,7 @@ class _StatWidgetState extends State<StatWidget>{
                       // TODO : implement renew
                     },
                     child: Text("Renew",
-                    style: TextStyle(color: Colors.deepPurple),
+                    style: TextStyle(color: Colors.purple),
                     ),
                   ),
                 )
@@ -362,7 +362,7 @@ class _BookJournalToggleState extends State<BookJournalToggle> {
             child: Container(
               padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
               decoration: BoxDecoration(
-                color: isBooksSelected ? Colors.deepPurple[100] : Colors.transparent,
+                color: isBooksSelected ? Colors.purple[100] : Colors.transparent,
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(30),
                   bottomLeft: Radius.circular(30),
@@ -391,7 +391,7 @@ class _BookJournalToggleState extends State<BookJournalToggle> {
             child: Container(
               padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
               decoration: BoxDecoration(
-                color: !isBooksSelected ? Colors.deepPurple[100] : Colors.transparent,
+                color: !isBooksSelected ? Colors.purple[100] : Colors.transparent,
                 borderRadius: BorderRadius.only(
                   topRight: Radius.circular(30),
                   bottomRight: Radius.circular(30),
