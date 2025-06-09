@@ -49,6 +49,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.4.0"
+  chat_bubbles:
+    dependency: "direct main"
+    description:
+      name: chat_bubbles
+      sha256: "902bc84e22f9ce6b993d015457067a37d37eb7478bd7b5b185712d5c5329b866"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.7.0"
   clock:
     dependency: transitive
     description:
@@ -97,22 +105,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.0.3+1"
-  decimal:
-    dependency: transitive
-    description:
-      name: decimal
-      sha256: "28239b8b929c1bd8618702e6dbc96e2618cf99770bbe9cb040d6cf56a11e4ec3"
-      url: "https://pub.dev"
-    source: hosted
-    version: "3.2.1"
-  easy_upi_payment:
-    dependency: "direct main"
-    description:
-      name: easy_upi_payment
-      sha256: "46c9c62dbcb190f89180451bc7310b2b5f712de390506b4384e976b2fed56d62"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.1.6"
   fake_async:
     dependency: transitive
     description:
@@ -155,14 +147,6 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.0"
-  flutter_upi_india:
-    dependency: "direct main"
-    description:
-      name: flutter_upi_india
-      sha256: d0686c9f510df959924140817f31727d58440d7b052d212b3f757b771b3b3fe8
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.6"
   flutter_web_plugins:
     dependency: transitive
     description: flutter
@@ -272,14 +256,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.9.1"
-  payu_checkoutpro_flutter:
-    dependency: "direct main"
-    description:
-      name: payu_checkoutpro_flutter
-      sha256: b140e85960d59c610e51eb73cbfbf231a4b85842c9d8299c7d1f9d3355181ef4
-      url: "https://pub.dev"
-    source: hosted
-    version: "1.3.0"
   persistent_bottom_nav_bar_v2:
     dependency: "direct main"
     description:
@@ -296,14 +272,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "6.1.0"
-  plugin_platform_interface:
-    dependency: transitive
-    description:
-      name: plugin_platform_interface
-      sha256: "4820fbfdb9478b1ebae27888254d445073732dae3d6ea81f0b7e06d5dedc3f02"
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.1.8"
   posix:
     dependency: transitive
     description:
@@ -328,14 +296,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "4.1.0"
-  rational:
-    dependency: transitive
-    description:
-      name: rational
-      sha256: cb808fb6f1a839e6fc5f7d8cb3b0a10e1db48b3be102de73938c627f0b636336
-      url: "https://pub.dev"
-    source: hosted
-    version: "2.2.3"
   sky_engine:
     dependency: transitive
     description: flutter

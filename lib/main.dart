@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:library_nitc/chatBotPage.dart';
 import 'package:library_nitc/homePage.dart';
 import 'package:library_nitc/loadingScreen.dart';
 import 'package:library_nitc/profilePage.dart';
@@ -73,7 +74,7 @@ class _MainPageState extends State<MainPage> {
           item: ItemConfig(icon: Icon(Icons.home_outlined), title: "HOME", activeForegroundColor: Colors.black)
         ),
         PersistentTabConfig(
-            screen: SafeArea(child: HomePage()),
+            screen: SafeArea(child: ChatBotPage()),
             item: ItemConfig(icon: Icon(Icons.chat_bubble_outline), title: "CHATBOT", activeForegroundColor: Colors.black)
         ),
         PersistentTabConfig(

@@ -39,10 +39,8 @@ dependencies:
   date_field: ^6.0.3+1
   intl: ^0.20.2
   flutter_native_splash: ^2.4.6
-  flutter_upi_india: ^0.0.6
   upi_payment_qrcode_generator: ^1.6.0
-  payu_checkoutpro_flutter: ^1.3.0
-  easy_upi_payment: ^0.1.6
+  chat_bubbles: ^1.7.0
 
 dev_dependencies:
   flutter_test:

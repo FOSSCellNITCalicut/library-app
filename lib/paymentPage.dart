@@ -1,8 +1,5 @@
-import 'package:easy_upi_payment/easy_upi_payment.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_upi_india/flutter_upi_india.dart';
-import 'package:payu_checkoutpro_flutter/payu_checkoutpro_flutter.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:upi_payment_qrcode_generator/upi_payment_qrcode_generator.dart';
 
