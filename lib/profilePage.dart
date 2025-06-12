@@ -14,9 +14,7 @@ class ProfilePage extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(
-              width: 324,
-              height: 163,
+            FittedBox(
               child: Row(
                 children: [
                   Column(
@@ -79,7 +77,10 @@ class ProfilePage extends StatelessWidget {
                         pushScreenWithNavBar(context, PaymentHistoryPage());
                       },
                     ),
-                    BorrowedBooksIndicator(),
+                    Padding(
+                      padding: EdgeInsets.all(12),
+                      child: BorrowedBooksIndicator(),
+                    ),
                     Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       child: Text("Your Books", style: TextStyle(fontWeight: FontWeight.w700),),
@@ -103,9 +104,7 @@ class BorrowedBooksIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 150,
-      width: 370,
+    return FittedBox(
       child: Row(
         children: [
           SizedBox(
@@ -153,11 +152,14 @@ class MyBooksList extends StatelessWidget {
               padding: EdgeInsets.all(8),
               child: Row(
                 children: [
-                  ClipRRect(
+                  Flexible(
+                    child: ClipRRect(
                     borderRadius: BorderRadius.circular(14),
                     child: Image.asset("assets/stats_book_temp.png"), // TODO build dynamically from search results
                   ),
-                  Padding(
+                  ),
+                  Flexible(
+                    child:  Padding(
                     padding: EdgeInsets.all(12),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,8 +168,9 @@ class MyBooksList extends StatelessWidget {
                         Text("Author"),
                         Text("Due date:"),
                         Expanded(child: SizedBox()),
-                        SizedBox(width: MediaQuery.sizeOf(context).width - 183.5, // not a fan of this - 183 but eh whatever works
+                        SizedBox(width: MediaQuery.of(context).size.width -183, // not a fan of this - 183 but eh whatever works
                           child: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Spacer(),
                               Text("View More"),
@@ -178,6 +181,7 @@ class MyBooksList extends StatelessWidget {
 
                       ],
                     ),
+                  ),
                   )
 
                 ],

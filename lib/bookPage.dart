@@ -158,7 +158,6 @@ class HoldingsList extends StatelessWidget {
         return Container(
           color: Colors.purple.shade50,
           padding: EdgeInsets.all(12),
-          height: 85,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

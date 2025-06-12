@@ -28,55 +28,8 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               padding: EdgeInsets.all(12.0),
-              child: Card(
-                color: Colors.purple.shade50,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)
-                ),
-                elevation: 1,
-                child: Container(
-                  height: 100,
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: const [
-                            Text(
-                              "Book sharing center",
-                              style: TextStyle(
-                                fontSize: 20,
-                              ),
-                            ),
-                            SizedBox(height: 8,),
-                            Text(
-                              "Explore now",
-                              style: TextStyle(
-                                  fontSize: 16
-                              ),
-                            )
-                          ],
-                        ),
-                      ),
-                      ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
-                          child: Image.asset(
-                            'assets/book_sharing.jpg',
-                            height: 80,
-                            width: 80,
-                            fit: BoxFit.fitHeight,
-                          )
-                      )
-                    ],
-                  ),
-                ),
-              ),
-            ),
+              child: BookSharingCard(),
+            ), 
             Padding(
               padding: EdgeInsets.all(12),
               child: StatWidget(),
@@ -105,6 +58,63 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class BookSharingCard extends StatelessWidget {
+  const BookSharingCard({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.purple.shade50,
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16)
+      ),
+      elevation: 1,
+      child: Flexible(
+        child: Padding(
+          padding: EdgeInsets.all(12),
+          child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Text(
+                    "Book sharing center",
+                    style: TextStyle(
+                      fontSize: 20,
+                    ),
+                  ),
+                  SizedBox(height: 8,),
+                  Text(
+                    "Explore now",
+                    style: TextStyle(
+                        fontSize: 16
+                    ),
+                  )
+                ],
+              ),
+            ),
+            ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Image.asset(
+                  'assets/book_sharing.jpg',
+                  height: 80,
+                  width: 80,
+                  fit: BoxFit.fitHeight,
+                )
+            )
+          ],
+        ),
+        ),
+        
       ),
     );
   }
@@ -156,8 +166,7 @@ class StatWidget extends StatefulWidget {
 class _StatWidgetState extends State<StatWidget>{
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 262,
+    return Flexible(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -207,7 +216,7 @@ class _StatWidgetState extends State<StatWidget>{
                   ),
                 )
               ],
-            ),
+            )
           )
         ],
       ),
@@ -346,8 +355,7 @@ class _BookJournalToggleState extends State<BookJournalToggle> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 43,
+    return FittedBox(child: Container(
       padding: EdgeInsets.zero,
       decoration: BoxDecoration(
         border: Border.all(color: Colors.grey.shade400, width: 2),
@@ -415,7 +423,7 @@ class _BookJournalToggleState extends State<BookJournalToggle> {
           ),
         ],
       ),
-    );
+    ));
   }
 }
 
@@ -438,7 +446,8 @@ class SearchResults extends StatelessWidget {
             height: 178,
             child: Padding(
               padding: EdgeInsets.all(8),
-              child: Row(
+              child: Flexible(
+                child: Row(
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(14),
@@ -452,7 +461,7 @@ class SearchResults extends StatelessWidget {
                         Text("Heading", style: TextStyle(fontWeight: FontWeight.w500, fontSize: 22),),
                         Text("Author"),
                         Expanded(child: SizedBox()),
-                        SizedBox(width: MediaQuery.sizeOf(context).width - 183.5, // not a fan of this - 183 but eh whatever works
+                        SizedBox(width: MediaQuery.sizeOf(context).width - 183, // not a fan of this - 183 but eh whatever works
                           child: Row(
                             children: [
                               Text("Availability"),
@@ -468,6 +477,7 @@ class SearchResults extends StatelessWidget {
 
                 ],
               ),
+              )
             ),
           ),
         );

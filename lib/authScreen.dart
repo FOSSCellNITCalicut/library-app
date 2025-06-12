@@ -58,7 +58,8 @@ class _AuthScreenState extends State<AuthScreen> {
               width: 77,
               height: 94,
               child: Image.asset("assets/nitc_logo.png"),
-            )
+            ),
+
           ],
         ),
       )
