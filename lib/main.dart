@@ -3,10 +3,12 @@ import 'package:library_nitc/aboutPage.dart';
 import 'package:library_nitc/chatBotPage.dart';
 import 'package:library_nitc/homePage.dart';
 import 'package:library_nitc/loadingScreen.dart';
+import 'package:library_nitc/notifPage.dart';
 import 'package:library_nitc/profilePage.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
 import 'package:intl/intl_standalone.dart' if (dart.library.html) 'package:intl/intl_browser.dart';
+import 'package:provider/provider.dart';
 
 import 'globals.dart';
 
@@ -27,9 +29,11 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
+    return ChangeNotifierProvider(
+      create: (context) => NotificationProvider(),
+      child: MaterialApp(
+        title: 'Flutter Demo',
+        theme: ThemeData(
         // This is the theme of your application.
         //
         // TRY THIS: Try running your application with "flutter run". You'll see
@@ -45,9 +49,10 @@ class MyApp extends StatelessWidget {
         //
         // This works for code too, not just values: Most code changes can be
         // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
-      ),
+          colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
+        ),
       home: LoadingScreen(),
+      ),
     );
   }
 }
