@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:library_nitc/aboutPage.dart';
 import 'package:library_nitc/chatBotPage.dart';
+import 'package:library_nitc/generated/intl/messages_all.dart';
 import 'package:library_nitc/homePage.dart';
 import 'package:library_nitc/loadingScreen.dart';
 import 'package:library_nitc/notifPage.dart';
@@ -15,7 +17,8 @@ import 'globals.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await findSystemLocale();
-  // await initializeDateFormatting();
+  await initializeMessages('en');
+  await initializeDateFormatting('en', null);
   runApp(const MyApp());
 }
 

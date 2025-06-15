@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
+import 'package:intl/intl.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -91,7 +92,7 @@ class _NotifScreenState extends State<NotifScreen> {
             ),
             FilledButton.tonalIcon( //! for Debugging purposes
               onPressed: () {
-                notifProvider.addNotification(Notification(id: Random().nextInt(20).toString(), message: "belo", text: 'blah blah blaj'));
+                notifProvider.addNotification(Notification(id: Random().nextInt(20).toString(), message: "belo", text: 'blah blah blaj', timeString: DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now())));
               },
               icon: Icon(Icons.add),
               label: const Text("Add new notif"),
@@ -124,6 +125,15 @@ class NotifItem extends StatelessWidget {
 
   const NotifItem({required this.notification,super.key});
 
+  String formattedTime(DateTime time){
+    final DateTime now = DateTime.now();
+    if(time.isAfter(now.subtract(Duration(days: 1)))){
+      return DateFormat('HH:mm').format(time);
+    } else {
+      return DateFormat('dd MMM').format(time);
+    }
+  }
+
   String truncate(int cutoff, String text) {
     return (text.length <= cutoff) 
       ? text
@@ -139,6 +149,7 @@ class NotifItem extends StatelessWidget {
       title: Text(notification.message),
       subtitle: Text(truncate(20 ,notification.text)), // TODO change cutoff according to requirements
       tileColor: notification.read ? Colors.black12 : Colors.deepPurple.shade50,
+      trailing: Text(formattedTime(DateTime.parse(notification.timeString))),
       onTap: () {
         if(!notification.read){
           notificationProvider.toggleReadStatus(notification.id);
@@ -153,9 +164,10 @@ class Notification {
   final String id;
   final String message;
   final String text;
+  final String timeString;
   bool read;
 
-  Notification({required this.id, required this.message, required this.text, this.read = false});
+  Notification({required this.id, required this.message, required this.text, required this.timeString,this.read = false});
 
   // Factory constructor to create a Notification object from a JSON map
   factory Notification.fromJson(Map<String, dynamic> json) {
@@ -163,6 +175,7 @@ class Notification {
       id: json['id'] as String,
       message: json['message'] as String,
       text: json['text'] as String,
+      timeString: json['timeString'] as String,
       read: json['read'] as bool,
     );
   }
@@ -173,6 +186,7 @@ class Notification {
       'id': id,
       'message': message,
       'text': text,
+      'timeString': timeString,
       'read': read,
     };
   }
@@ -228,9 +242,9 @@ class NotificationProvider extends ChangeNotifier {
       _notifications = decodedList.map((item) => Notification.fromJson(item)).toList();
     } else {
       _notifications = [
-        Notification(id: "1", message: "helo", text: 'blah blah blaj'),
-        Notification(id: "2", message: "helo", text: 'blah blah blaj'),
-        Notification(id: "3", message: "helo", text: 'blah blah blaj'),
+        Notification(id: "1", message: "helo", text: 'blah blah blaj', timeString: '2025-06-13 12:43:23'),
+        Notification(id: "2", message: "helo", text: 'blah blah blaj', timeString: '2025-02-13 12:43:23'),
+        Notification(id: "3", message: "helo", text: 'blah blah blaj', timeString: '2025-06-15 09:43:23'),
       ];
     }
     _isLoading = false;
@@ -287,7 +301,9 @@ class NotifDetailsPage extends StatelessWidget {
           IconButton(
             onPressed: () {
               provider.toggleReadStatus(currentNotif.id);
-              print("Notif status changed");
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Notification marked as ${currentNotif.read ? "read" : "unread"}"))
+              );
             },
             icon: Icon(notification.read ? Icons.mark_as_unread : Icons.mark_email_read_rounded),
           )
@@ -302,6 +318,9 @@ class NotifDetailsPage extends StatelessWidget {
               children: [
                 Text(notification.message, style: TextStyle(fontSize: 22),),
               ],
+            ),
+            Center(
+              child: Text(DateFormat('MMM dd, yyyy, HH:mm').format(DateTime.parse(notification.timeString)), style: TextStyle(fontSize: 12),),
             ),
             Wrap(children: [
               Text(notification.text)
