@@ -1,0 +1,18 @@
+langchain==0.1.12
+langchain-community==0.0.29
+langchain-huggingface==0.3.0  # Updated to latest stable version
+sentence-transformers==2.7.0
+faiss-cpu==1.8.0
+llama-cpp-python==0.2.56
+gradio==4.24.0
+huggingface-hub==0.22.2
+transformers==4.40.1
+accelerate==0.29.3
+flask==3.0.2
+torch==2.2.1
+numpy==1.26.4
+tqdm==4.66.2
+requests==2.31.0
+safetensors==0.4.2
+tokenizers==0.15.2
+
