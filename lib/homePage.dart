@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:library_nitc/bookPage.dart';
+import 'package:library_nitc/bookSharingCornerPage.dart';
 import 'package:library_nitc/notifPage.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
@@ -59,40 +60,50 @@ class _HomePageState extends State<HomePage> {
 }
 
 class BookSharingCard extends StatelessWidget {
-  const BookSharingCard({super.key});
+  BookSharingCard({super.key});
+
+  final BorderRadius _borderRadius = BorderRadius.circular(16);
 
   @override
   Widget build(BuildContext context) {
     return Card(
       color: Colors.purple.shade50,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: _borderRadius),
       elevation: 1,
-      child: Flexible(
-        child: Padding(
-          padding: EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
-                    Text("Book sharing center", style: TextStyle(fontSize: 20)),
-                    SizedBox(height: 8),
-                    Text("Explore now", style: TextStyle(fontSize: 16)),
-                  ],
-                ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: _borderRadius,
+        child: InkWell(
+          borderRadius: _borderRadius,
+          onTap: () => pushScreenWithNavBar(context, BookSharingCornerPage()),
+          child: Flexible(
+            child: Padding(
+              padding: EdgeInsets.all(12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: const [
+                        Text("Book sharing center", style: TextStyle(fontSize: 20)),
+                        SizedBox(height: 8),
+                        Text("Explore now", style: TextStyle(fontSize: 16)),
+                      ],
+                    ),
+                  ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      'assets/book_sharing.jpg',
+                      height: 80,
+                      width: 80,
+                      fit: BoxFit.fitHeight,
+                    ),
+                  ),
+                ],
               ),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  'assets/book_sharing.jpg',
-                  height: 80,
-                  width: 80,
-                  fit: BoxFit.fitHeight,
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),

@@ -77,7 +77,6 @@ class _MainPageState extends State<MainPage> {
     return PersistentTabView(
       controller: persistentTabController,
       tabs: [
-        // TODO : replace screen argument in each PersistentTabConfig to match required page
         PersistentTabConfig(
           screen: SafeArea(child: HomePage()),
           item: ItemConfig(icon: Icon(Icons.home_outlined), title: "HOME", activeForegroundColor: Colors.black)
@@ -119,7 +118,7 @@ class _MainPageState extends State<MainPage> {
   // NavigationDestination(icon: Icon(Icons.account_circle_rounded), label: "PROFILE")
   // ],
   // ),
-  // body: <Widget>[ // TODO : Add remaining pages
+  // body: <Widget>[
   // SafeArea(child: HomePage())
   // ][currentPageIndex],
 }
