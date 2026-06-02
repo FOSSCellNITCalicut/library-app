@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_social_button/flutter_social_button.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -189,19 +189,19 @@ class _SocialSectionState extends State<SocialSection> {
                 children: [
                   const Text("Follow Us", style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600), ),
                   IconButton(
-                    icon: Icon(FontAwesomeIcons.instagram, color: Colors.deepPurple,),
+                    icon: FaIcon(FontAwesomeIcons.instagram, color: Colors.deepPurple,),
                      onPressed: () => _launchUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ"), //! PUT ACTUAL URLS
                   ),
                   IconButton(
-                    icon: Icon(FontAwesomeIcons.xTwitter, color: Colors.deepPurple,),
+                    icon: FaIcon(FontAwesomeIcons.xTwitter, color: Colors.deepPurple,),
                      onPressed: () => _launchUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ"), //! PUT ACTUAL URLS
                   ),
                   IconButton(
-                    icon: Icon(FontAwesomeIcons.facebook, color: Colors.deepPurple,),
+                    icon: FaIcon(FontAwesomeIcons.facebook, color: Colors.deepPurple,),
                      onPressed: () => _launchUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ"), //! PUT ACTUAL URLS
                   ),
                   IconButton(
-                    icon: Icon(FontAwesomeIcons.linkedinIn, color: Colors.deepPurple,),
+                    icon: FaIcon(FontAwesomeIcons.linkedinIn, color: Colors.deepPurple,),
                      onPressed: () => _launchUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ"), //! PUT ACTUAL URLS
                   ),
                 ],

@@ -8,7 +8,8 @@ plugins {
 android {
     namespace = "in.ac.nitc.library_nitc"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = "27.0.12077973"
+    // pinning ndkVersion here requires the exact version to be installed; omit it to use the default NDK bundled with AGP
+    // ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -24,7 +25,7 @@ android {
         applicationId = "in.ac.nitc.library_nitc"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
-        minSdk = 21
+        minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
@@ -46,3 +47,4 @@ flutter {
 //dependencies {
 //    implementation "dev.shreyaspatil.EasyUpiPayment:EasyUpiPayment:3.0.3"
 //}
+
