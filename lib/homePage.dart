@@ -5,6 +5,8 @@ import 'package:library_nitc/bookPage.dart';
 import 'package:library_nitc/bookSharingCornerPage.dart';
 import 'package:library_nitc/notifPage.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
+import 'package:library_nitc/browsePage.dart';
+import 'package:library_nitc/browsePage.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -24,7 +26,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             Padding(
               padding: const EdgeInsets.all(12.0),
-              child: MainSearchBar(),
+              child: HomeHeader(),
             ),
             Padding(padding: EdgeInsets.all(12.0), child: BookSharingCard()),
             Padding(padding: EdgeInsets.all(12), child: StatWidget()),
@@ -111,6 +113,52 @@ class BookSharingCard extends StatelessWidget {
   }
 }
 
+class HomeHeader extends StatelessWidget {
+  const HomeHeader({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Expanded(
+          child: Text(
+            "NITC Library",
+            style: TextStyle(
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
+              color: const Color(0xFF6A1B9A),
+            ),
+          ),
+        ),
+        IconButton(
+          onPressed: () {
+            pushScreenWithNavBar(
+              context,
+              const Notifpage(),
+            );
+          },
+          icon: const Icon(
+            Icons.notifications_none_outlined,
+            size: 28,
+          ),
+        ),
+        IconButton(
+          onPressed: () {
+            pushScreenWithNavBar(
+              context,
+              const BrowsePage(),
+            );
+          },
+          icon: const Icon(
+            Icons.search,
+            size: 28,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class MainSearchBar extends StatelessWidget {
   const MainSearchBar({super.key});
 
@@ -125,9 +173,15 @@ class MainSearchBar extends StatelessWidget {
           padding: const WidgetStatePropertyAll<EdgeInsets>(
             EdgeInsets.symmetric(horizontal: 16.0),
           ),
+
+          //navigate to browse page
           onTap: () {
-            showSearch(context: context, delegate: BookSearchDelegate());
+            pushScreenWithNavBar(
+              context,
+              const BrowsePage(),
+            );
           },
+
           trailing: <Widget>[
             IconButton(
               onPressed: () {
