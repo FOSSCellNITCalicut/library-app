@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:library_nitc/homePage.dart';
 
 enum SearchState {
   initial,
@@ -18,8 +19,6 @@ class _BrowsePageState extends State<BrowsePage> {
   final SearchController searchController = SearchController();
 
   SearchState currentState = SearchState.initial;
-
-  List<String> searchResults = [];
 
   int selectedFilter = 0;
 
@@ -51,11 +50,6 @@ class _BrowsePageState extends State<BrowsePage> {
     if (query.contains("python") ||
         query.contains("java") ||
         query.contains("flutter")) {
-      searchResults = [
-        "Learning Python",
-        "Java Programming",
-        "Flutter Development",
-      ];
 
       setState(() {
         currentState = SearchState.results;
@@ -86,18 +80,37 @@ class _BrowsePageState extends State<BrowsePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
 
-            // Search Bar
-            SearchBar(
-              controller: searchController,
-              leading: const Icon(Icons.search),
-              hintText: "Search Books, eBooks...",
-              padding: const WidgetStatePropertyAll<EdgeInsets>(
-                EdgeInsets.symmetric(horizontal: 16.0),
-              ),
-              onSubmitted: (value) {
-                performSearch();
-              },
+            // Search Bar + AI Button
+      SearchBar(
+        controller: searchController,
+        leading: const Icon(Icons.search),
+        hintText: "Search Books, eBooks...",
+        padding: const WidgetStatePropertyAll<EdgeInsets>(
+          EdgeInsets.symmetric(horizontal: 16.0),
+        ),
+
+        trailing: [
+          IconButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    "AI Search coming soon!",
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(
+              Icons.auto_awesome,
+              color: Color(0xFF6A1B9A),
             ),
+          ),
+        ],
+
+        onSubmitted: (value) {
+          performSearch();
+        },
+      ),
 
             const SizedBox(height: 16),
 
@@ -146,19 +159,37 @@ class _BrowsePageState extends State<BrowsePage> {
                   }
 
                   if (currentState == SearchState.empty) {
-                    return const Center(
+                    return Center(
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.search_off,
-                            size: 60,
+                          Image.asset(
+                            'assets/empty.png',
+                            height: 200,
                           ),
-                          SizedBox(height: 12),
-                          Text(
-                            "No books found",
-                            style: TextStyle(
-                              fontSize: 18,
+
+                          Transform.translate(
+                            offset: const Offset(0, -20),
+                            child: const Column(
+                              children: [
+                                Text(
+                                  "No books found",
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+
+                                SizedBox(height: 4),
+
+                                Text(
+                                  "Try another search",
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                         ],
@@ -167,34 +198,10 @@ class _BrowsePageState extends State<BrowsePage> {
                   }
 
                   if (currentState == SearchState.results) {
-                    return ListView.builder(
-                      itemCount: searchResults.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 10),
-                          child: ListTile(
-                            leading: const Icon(Icons.book_outlined),
-                            title: Text(searchResults[index]),
-                            subtitle: const Text("Mock Search Result"),
-                          ),
-                        );
-                      },
-                    );
+                    return const SearchResults();
                   }
 
-                  return ListView.builder(
-                    itemCount: 10,
-                    itemBuilder: (context, index) {
-                      return Card(
-                        margin: const EdgeInsets.only(bottom: 10),
-                        child: ListTile(
-                          leading: const Icon(Icons.book_outlined),
-                          title: Text("Mock Book ${index + 1}"),
-                          subtitle: const Text("Author Name"),
-                        ),
-                      );
-                    },
-                  );
+                  return const SearchResults();
                 },
               ),
             ),

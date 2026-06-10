@@ -532,6 +532,7 @@ class SearchResults extends StatelessWidget {
                       child: Image.asset(
                         "assets/stats_book_temp.png",
                       ), // TODO build dynamically from search results
+                      
                     ),
                     Padding(
                       padding: EdgeInsets.all(12),
