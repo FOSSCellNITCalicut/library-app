@@ -29,37 +29,39 @@ class _BrowsePageState extends State<BrowsePage> {
     "Journals",
   ];
 
-  Future<void> performSearch() async {
+
+// future API integration
+Future<List<int>> searchBooks(String searchTerm) async {
+  // Future API request:
+  // GET /opac-search.pl?q=<searchTerm>&format=rss2
+
+  await Future.delayed(const Duration(seconds: 1));
+
+  // Mock results for now (same 7 hardcoded books)
+  return List.generate(7, (index) => index);
+}
+
+Future<void> performSearch() async {
+  final query = searchController.text.trim();
+
+  if (query.isEmpty) {
     setState(() {
-      currentState = SearchState.loading;
+      currentState = SearchState.initial;
     });
-
-    await Future.delayed(
-      const Duration(seconds: 2),
-    );
-
-    final query = searchController.text.trim().toLowerCase();
-
-    if (query.isEmpty) {
-      setState(() {
-        currentState = SearchState.initial;
-      });
-      return;
-    }
-
-    if (query.contains("python") ||
-        query.contains("java") ||
-        query.contains("flutter")) {
-
-      setState(() {
-        currentState = SearchState.results;
-      });
-    } else {
-      setState(() {
-        currentState = SearchState.empty;
-      });
-    }
+    return;
   }
+
+  setState(() {
+    currentState = SearchState.loading;
+  });
+
+  final results = await searchBooks(query);
+
+  setState(() {
+    currentState =
+        results.isNotEmpty ? SearchState.results : SearchState.empty;
+  });
+}
 
   @override
   Widget build(BuildContext context) {

@@ -522,52 +522,51 @@ class SearchResults extends StatelessWidget {
           },
           child: SizedBox(
             height: 178,
-            child: Padding(
-              padding: EdgeInsets.all(8),
-              child: Flexible(
+              child: Padding(
+                padding: const EdgeInsets.all(8),
                 child: Row(
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(14),
-                      child: Image.asset(
-                        "assets/stats_book_temp.png",
-                      ), // TODO build dynamically from search results
-                      
-                    ),
-                    Padding(
-                      padding: EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Heading",
-                            style: TextStyle(
-                              fontWeight: FontWeight.w500,
-                              fontSize: 22,
+                        child: Image.asset(
+                          "assets/stats_book_temp.png",
+                          width: 110,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Heading",
+                              style: TextStyle(
+                                fontWeight: FontWeight.w500,
+                                fontSize: 22,
+                              ),
                             ),
-                          ),
-                          Text("Author"),
-                          Expanded(child: SizedBox()),
-                          SizedBox(
-                            width:
-                                MediaQuery.sizeOf(context).width -
-                                183, // not a fan of this - 183 but eh whatever works
-                            child: Row(
+
+                            Text("Author"),
+
+                            Spacer(),
+
+                            Row(
                               children: [
                                 Text("Availability"),
                                 Spacer(),
                                 Text("View More"),
                               ],
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ),
         );
       },
     );
