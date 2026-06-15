@@ -12,6 +12,7 @@ import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:intl/intl_standalone.dart' if (dart.library.html) 'package:intl/intl_browser.dart';
 import 'package:provider/provider.dart';
 
+import 'auth_provider.dart';
 import 'globals.dart';
 
 Future<void> main() async {
@@ -22,18 +23,16 @@ Future<void> main() async {
   runApp(const MyApp());
 }
 
-// void main() {
-//   runApp(const MyApp());
-// }
-
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (context) => NotificationProvider(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+      ],
       child: MaterialApp(
         title: 'Flutter Demo',
         theme: ThemeData(
