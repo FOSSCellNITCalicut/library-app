@@ -8,7 +8,8 @@ import 'package:library_nitc/main.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
 class BookPage extends StatefulWidget {
-  const BookPage({super.key});
+  final int biblioId;
+  const BookPage({required this.biblioId, super.key});
 
 
 
