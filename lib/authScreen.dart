@@ -44,9 +44,15 @@ class _AuthScreenState extends State<AuthScreen> {
       // Guard: widget may have been disposed while we awaited the HTTP call.
       if (!mounted) return;
 
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainPage()),
-      );
+      // If pushed from profile/protected action: pop back (Consumer rebuilds the caller).
+      // If somehow the root: replace with MainPage.
+      if (Navigator.canPop(context)) {
+        Navigator.of(context).pop();
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const MainPage()),
+        );
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _error = e.toString());
