@@ -27,13 +27,19 @@ class AuthProvider extends ChangeNotifier {
   /// On success: stores the access token in memory and the refresh token in
   /// secure storage (OS Keychain/Keystore), then notifies listeners.
   ///
+  /// [rememberMe] tells the backend to encrypt and store the password so it
+  /// can silently re-authenticate with Koha if the CGISESSID session expires
+  /// mid-action, instead of forcing the user to log in again. This is
+  /// separate from the refresh token, which only keeps the app session
+  /// alive -- it doesn't help once Koha's own session has gone stale.
+  ///
   /// Throws a [String] error message on failure (wrong credentials, network
   /// error, etc.) so the UI can display it.
-  Future<void> login(String rollNo, String password) async {
+  Future<void> login(String rollNo, String password, {bool rememberMe = false}) async {
     final response = await http.post(
       Uri.parse('$_backendBaseUrl/api/v1/login'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'roll_no': rollNo, 'password': password}),
+      body: jsonEncode({'roll_no': rollNo, 'password': password, 'remember_me': rememberMe}),
     );
 
     if (response.statusCode == 401) {

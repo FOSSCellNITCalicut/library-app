@@ -15,6 +15,7 @@ class _AuthScreenState extends State<AuthScreen> {
   final _passwordController = TextEditingController();
   bool _loading = false;
   bool _obscurePassword = true;
+  bool _rememberMe = false;
   String? _error;
 
   @override
@@ -39,7 +40,7 @@ class _AuthScreenState extends State<AuthScreen> {
     });
 
     try {
-      await context.read<AuthProvider>().login(rollNo, password);
+      await context.read<AuthProvider>().login(rollNo, password, rememberMe: _rememberMe);
 
       // Guard: widget may have been disposed while we awaited the HTTP call.
       if (!mounted) return;
@@ -110,7 +111,16 @@ class _AuthScreenState extends State<AuthScreen> {
                   ),
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Checkbox(
+                    value: _rememberMe,
+                    onChanged: (value) => setState(() => _rememberMe = value ?? false),
+                  ),
+                  const Text('Remember me', style: TextStyle(fontSize: 14)),
+                ],
+              ),
               if (_error != null)
                 Padding(
                   padding: const EdgeInsets.only(top: 4),
