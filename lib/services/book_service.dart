@@ -1,6 +1,8 @@
 import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:library_nitc/models/book_details.dart';
 
-const String kBaseUrl = 'http://10.0.2.2:8000';
+const String kBaseUrl = 'http://192.168.1.44:8000';
 
 class BookService {
   final String baseUrl;
@@ -26,5 +28,20 @@ class BookService {
       throw Exception('HTTP ${response.statusCode}: ${response.body}');
     }
     return response;
+  }
+
+
+  //BOOKDETAIL??
+
+   Future<BookDetail> getBookDetail(int biblioId) async {
+    final uri = Uri.parse('$baseUrl/api/v1/books/$biblioId');
+
+    final res = await http.get(uri);
+
+    if (res.statusCode == 200) {
+      return BookDetail.fromJson(jsonDecode(res.body));
+    } else {
+      throw Exception('Detail failed: ${res.body}');
+    }
   }
 }
