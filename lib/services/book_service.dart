@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 
-const String kBaseUrl = 'http://localhost:8000';
+const String kBaseUrl = 'http://10.0.2.2:8000';
 
 class BookService {
   final String baseUrl;

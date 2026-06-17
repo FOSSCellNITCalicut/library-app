@@ -200,10 +200,16 @@ Future<void> performSearch() async {
                   }
 
                   if (currentState == SearchState.results) {
-                    return const SearchResults();
+                    return SearchResults(query: searchController.text.trim());
                   }
 
-                  return const SearchResults();
+                  // initial state — nothing searched yet
+                  return const Center(
+                    child: Text(
+                      'Search for books above',
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
+                  );
                 },
               ),
             ),

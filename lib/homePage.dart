@@ -81,33 +81,31 @@ class BookSharingCard extends StatelessWidget {
         child: InkWell(
           borderRadius: _borderRadius,
           onTap: () => pushScreenWithNavBar(context, BookSharingCornerPage()),
-          child: Flexible(
-            child: Padding(
-              padding: EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Text("Book sharing center", style: TextStyle(fontSize: 20)),
-                        SizedBox(height: 8),
-                        Text("Explore now", style: TextStyle(fontSize: 16)),
-                      ],
-                    ),
+          child: Padding(
+            padding: EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Text("Book sharing center", style: TextStyle(fontSize: 20)),
+                      SizedBox(height: 8),
+                      Text("Explore now", style: TextStyle(fontSize: 16)),
+                    ],
                   ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      'assets/book_sharing.jpg',
-                      height: 80,
-                      width: 80,
-                      fit: BoxFit.fitHeight,
-                    ),
+                ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'assets/book_sharing.jpg',
+                    height: 80,
+                    width: 80,
+                    fit: BoxFit.fitHeight,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -211,10 +209,9 @@ class StatWidget extends StatefulWidget {
 class _StatWidgetState extends State<StatWidget> {
   @override
   Widget build(BuildContext context) {
-    return Flexible(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
           Text(
             "Your stats:",
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
@@ -273,7 +270,6 @@ class _StatWidgetState extends State<StatWidget> {
             ),
           ),
         ],
-      ),
     );
   }
 }
@@ -837,23 +833,24 @@ class _SearchResultsState extends State<SearchResults> {
                             borderRadius: BorderRadius.circular(14),
                             child: Image.asset('assets/stats_book_temp.png'),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  book.title,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 22,
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    book.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 18,
+                                    ),
                                   ),
-                                ),
-                                Text(book.authors.isNotEmpty ? book.authors[0] : ''),
-                                const Expanded(child: SizedBox()),
-                                SizedBox(
-                                  width: MediaQuery.sizeOf(context).width - 183,
-                                  child: Row(
+                                  Text(book.authors.isNotEmpty ? book.authors[0] : ''),
+                                  const Expanded(child: SizedBox()),
+                                  Row(
                                     children: [
                                       Text(
                                         book.availableCopies > 0
@@ -869,8 +866,8 @@ class _SearchResultsState extends State<SearchResults> {
                                       const Text('View More'),
                                     ],
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ],
