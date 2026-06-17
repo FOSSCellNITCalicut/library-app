@@ -1,0 +1,215 @@
+import 'package:flutter/material.dart';
+import 'package:library_nitc/homePage.dart';
+
+enum SearchState {
+  initial,
+  loading,
+  results,
+  empty,
+}
+
+class BrowsePage extends StatefulWidget {
+  const BrowsePage({super.key});
+
+  @override
+  State<BrowsePage> createState() => _BrowsePageState();
+}
+
+class _BrowsePageState extends State<BrowsePage> {
+  final SearchController searchController = SearchController();
+
+  SearchState currentState = SearchState.initial;
+
+  int selectedFilter = 0;
+
+  final List<String> filters = [
+    "All",
+    "Books",
+    "eBooks",
+    "Journals",
+  ];
+
+
+// future API integration
+Future<List<int>> searchBooks(String searchTerm) async {
+  // Future API request:
+  // GET /opac-search.pl?q=<searchTerm>&format=rss2
+
+  await Future.delayed(const Duration(seconds: 1));
+
+  // Mock results for now (same 7 hardcoded books)
+  return List.generate(7, (index) => index);
+}
+
+Future<void> performSearch() async {
+  final query = searchController.text.trim();
+
+  if (query.isEmpty) {
+    setState(() {
+      currentState = SearchState.initial;
+    });
+    return;
+  }
+
+  setState(() {
+    currentState = SearchState.loading;
+  });
+
+  final results = await searchBooks(query);
+
+  setState(() {
+    currentState =
+        results.isNotEmpty ? SearchState.results : SearchState.empty;
+  });
+}
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Browse"),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ),
+
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            // Search Bar + AI Button
+      SearchBar(
+        controller: searchController,
+        leading: const Icon(Icons.search),
+        hintText: "Search Books, eBooks...",
+        padding: const WidgetStatePropertyAll<EdgeInsets>(
+          EdgeInsets.symmetric(horizontal: 16.0),
+        ),
+
+        trailing: [
+          IconButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    "AI Search coming soon!",
+                  ),
+                ),
+              );
+            },
+            icon: const Icon(
+              Icons.auto_awesome,
+              color: Color(0xFF6A1B9A),
+            ),
+          ),
+        ],
+
+        onSubmitted: (value) {
+          performSearch();
+        },
+      ),
+
+            const SizedBox(height: 16),
+
+            // Filter Chips
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: List.generate(
+                  filters.length,
+                  (index) => Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(filters[index]),
+                      selected: selectedFilter == index,
+                      onSelected: (value) {
+                        setState(() {
+                          selectedFilter = index;
+                        });
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            const Text(
+              "Browse Books",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+
+            const SizedBox(height: 12),
+
+            Expanded(
+              child: Builder(
+                builder: (context) {
+
+                  if (currentState == SearchState.loading) {
+                    return const Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+
+                  if (currentState == SearchState.empty) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Image.asset(
+                            'assets/empty.png',
+                            height: 200,
+                          ),
+
+                          Transform.translate(
+                            offset: const Offset(0, -20),
+                            child: const Column(
+                              children: [
+                                Text(
+                                  "No books found",
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+
+                                SizedBox(height: 4),
+
+                                Text(
+                                  "Try another search",
+                                  style: TextStyle(
+                                    color: Colors.grey,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                  if (currentState == SearchState.results) {
+                    return const SearchResults();
+                  }
+
+                  return const SearchResults();
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
