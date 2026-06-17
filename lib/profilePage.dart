@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:library_nitc/auth_provider.dart';
 import 'package:library_nitc/authScreen.dart';
 import 'package:library_nitc/paymentPage.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
+import 'package:provider/provider.dart';
 
 class ProfilePage extends StatelessWidget {
   @override
@@ -9,59 +11,116 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("Your profile", textAlign: TextAlign.center,),
+        title: const Text('Your profile', textAlign: TextAlign.center),
       ),
-      body: SingleChildScrollView(
+      body: Consumer<AuthProvider>(
+        builder: (context, auth, _) {
+          if (!auth.isLoggedIn) {
+            return _LoginPrompt();
+          }
+          return _ProfileContent(auth: auth);
+        },
+      ),
+    );
+  }
+}
+
+class _LoginPrompt extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            FittedBox(
-              child: Row(
-                children: [
-                  Column(
-                    children: [
-                      SizedBox(
-                        height: 120,
-                        width: 120,
-                        child: ClipOval(
-                          child: Image.asset("assets/main_logo.png"), // TODO get profile data
-                        ),
-                      ),
-                      Text("Username",style: TextStyle(fontWeight: FontWeight.w400, fontSize: 20),)
-                    ],
-                  ),
-                  Padding(
-                    padding: EdgeInsets.all(12),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("Email:", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black87),),
-                        Text("giga_b246666cs@nitc.ac.in", style: TextStyle( color: Colors.black87),),
-                        SizedBox(height: 10,),
-                        Text("Roll no:", style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black87),),
-                        Text("B246666CS", style: TextStyle( color: Colors.black87),),
-                        SizedBox(height: 10,)
-                      ],
-                    ),
-                  )
-                ],
+            const Icon(Icons.account_circle_outlined, size: 80, color: Colors.black26),
+            const SizedBox(height: 16),
+            const Text(
+              'Log in to view your profile, borrowed books, and fines.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 15, color: Colors.black54),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: 200,
+              height: 48,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('LOGIN', style: TextStyle(fontWeight: FontWeight.w700)),
               ),
             ),
-            Padding(
-                padding: EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [ // TODO : replace icons with proper ones
-                    // removed change password button coz we're not doing auth
-                    ListTile(
-                      leading: Icon(Icons.logout),
-                      title: Text("Logout"),
-                      tileColor: Colors.purple.shade50,
-                      onTap: () {
-                        // TODO logout auth stuff
-                        pushReplacementWithoutNavBar(context, MaterialPageRoute(builder: (_) => AuthScreen()));
-                      },
-                    ),ListTile(
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileContent extends StatelessWidget {
+  final AuthProvider auth;
+  const _ProfileContent({required this.auth});
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          FittedBox(
+            child: Row(
+              children: [
+                Column(
+                  children: [
+                    SizedBox(
+                      height: 120,
+                      width: 120,
+                      child: ClipOval(child: Image.asset('assets/main_logo.png')),
+                    ),
+                    Text(
+                      auth.name ?? '',
+                      style: const TextStyle(fontWeight: FontWeight.w400, fontSize: 20),
+                    ),
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Roll no:', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black87)),
+                      Text(auth.rollNo ?? '', style: const TextStyle(color: Colors.black87)),
+                      const SizedBox(height: 10),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ListTile(
+                  leading: const Icon(Icons.logout),
+                  title: const Text('Logout'),
+                  tileColor: Colors.purple.shade50,
+                  onTap: () async {
+                    await context.read<AuthProvider>().logout();
+                    // Consumer rebuilds automatically -- no navigation needed.
+                  },
+                ),
+                ListTile(
                       leading: Icon(Icons.monetization_on_outlined),
                       title: Text("Payment of late dues"),
                       tileColor: Colors.purple.shade50,
@@ -70,33 +129,29 @@ class ProfilePage extends StatelessWidget {
                       },
                     ),
                     ListTile(
-                      leading: Icon(Icons.monetization_on_outlined),
-                      title: Text("History of late dues"),
+                      leading: const Icon(Icons.monetization_on_outlined),
+                      title: const Text('History of late dues'),
                       tileColor: Colors.purple.shade50,
                       onTap: () {
                         pushScreenWithNavBar(context, PaymentHistoryPage());
                       },
                     ),
-                    Padding(
+                    const Padding(
                       padding: EdgeInsets.all(12),
                       child: BorrowedBooksIndicator(),
                     ),
-                    Padding(
+                    const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      child: Text("Your Books", style: TextStyle(fontWeight: FontWeight.w700),),
-
+                      child: Text('Your Books', style: TextStyle(fontWeight: FontWeight.w700)),
                     ),
-                    MyBooksList()
+                    MyBooksList(),
                   ],
-                )
-            )
-
-          ],
-        ),
-      )
-    );
+                ),
+              ),
+            ],
+          ),
+        );
   }
-
 }
 
 class BorrowedBooksIndicator extends StatelessWidget {
