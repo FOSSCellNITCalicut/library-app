@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:library_nitc/bookPage.dart';
 import 'package:library_nitc/bookSharingCornerPage.dart';
+import 'package:library_nitc/models/book_summary.dart';
 import 'package:library_nitc/notifPage.dart';
+import 'package:library_nitc/services/book_service.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:library_nitc/browsePage.dart';
 import 'package:library_nitc/browsePage.dart';
@@ -24,10 +27,7 @@ class _HomePageState extends State<HomePage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: HomeHeader(),
-            ),
+            Padding(padding: const EdgeInsets.all(12.0), child: HomeHeader()),
             Padding(padding: EdgeInsets.all(12.0), child: BookSharingCard()),
             Padding(padding: EdgeInsets.all(12), child: StatWidget()),
             Padding(
@@ -40,7 +40,7 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               padding: EdgeInsets.all(12),
-              child: SizedBox(height: 250, child: HorizontalBookScroll()),
+              child: SizedBox(height: 250, child: BrowseCatalog()),
             ),
             Padding(
               padding: EdgeInsets.all(16),
@@ -78,33 +78,34 @@ class BookSharingCard extends StatelessWidget {
         child: InkWell(
           borderRadius: _borderRadius,
           onTap: () => pushScreenWithNavBar(context, BookSharingCornerPage()),
-          child: Flexible(
-            child: Padding(
-              padding: EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
-                        Text("Book sharing center", style: TextStyle(fontSize: 20)),
-                        SizedBox(height: 8),
-                        Text("Explore now", style: TextStyle(fontSize: 16)),
-                      ],
-                    ),
+          child: Padding(
+            padding: EdgeInsets.all(12),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: const [
+                      Text(
+                        "Book sharing center",
+                        style: TextStyle(fontSize: 20),
+                      ),
+                      SizedBox(height: 8),
+                      Text("Explore now", style: TextStyle(fontSize: 16)),
+                    ],
                   ),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.asset(
-                      'assets/book_sharing.jpg',
-                      height: 80,
-                      width: 80,
-                      fit: BoxFit.fitHeight,
-                    ),
+                ),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.asset(
+                    'assets/book_sharing.jpg',
+                    height: 80,
+                    width: 80,
+                    fit: BoxFit.fitHeight,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -132,27 +133,15 @@ class HomeHeader extends StatelessWidget {
         ),
         IconButton(
           onPressed: () {
-            pushScreenWithNavBar(
-              context,
-              const Notifpage(),
-            );
+            pushScreenWithNavBar(context, const Notifpage());
           },
-          icon: const Icon(
-            Icons.notifications_none_outlined,
-            size: 28,
-          ),
+          icon: const Icon(Icons.notifications_none_outlined, size: 28),
         ),
         IconButton(
           onPressed: () {
-            pushScreenWithNavBar(
-              context,
-              const BrowsePage(),
-            );
+            pushScreenWithNavBar(context, const BrowsePage());
           },
-          icon: const Icon(
-            Icons.search,
-            size: 28,
-          ),
+          icon: const Icon(Icons.search, size: 28),
         ),
       ],
     );
@@ -176,10 +165,7 @@ class MainSearchBar extends StatelessWidget {
 
           //navigate to browse page
           onTap: () {
-            pushScreenWithNavBar(
-              context,
-              const BrowsePage(),
-            );
+            pushScreenWithNavBar(context, const BrowsePage());
           },
 
           trailing: <Widget>[
@@ -208,69 +194,64 @@ class StatWidget extends StatefulWidget {
 class _StatWidgetState extends State<StatWidget> {
   @override
   Widget build(BuildContext context) {
-    return Flexible(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Your stats:",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Your stats:",
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+        ),
+        SizedBox(height: 16),
+        Container(
+          padding: EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.purple.shade50,
+            borderRadius: BorderRadius.circular(16),
           ),
-          SizedBox(height: 16),
-          Container(
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.purple.shade50,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "You have taken 3 out of 5 books",
-                  style: TextStyle(fontSize: 14),
-                ), // TODO : get from backend
-                SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: LinearProgressIndicator(
-                    value: 0.6, // TODO : process value from backend
-                    minHeight: 8,
-                    backgroundColor: Colors.purple.shade100,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
-                  ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "You have taken 3 out of 5 books",
+                style: TextStyle(fontSize: 14),
+              ), // TODO : get from backend
+              SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(10),
+                child: LinearProgressIndicator(
+                  value: 0.6, // TODO : process value from backend
+                  minHeight: 8,
+                  backgroundColor: Colors.purple.shade100,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
                 ),
+              ),
 
-                SizedBox(height: 16),
-                Text(
-                  "You have to return",
-                  style: TextStyle(color: Colors.grey[700]),
+              SizedBox(height: 16),
+              Text(
+                "You have to return",
+                style: TextStyle(color: Colors.grey[700]),
+              ),
+              SizedBox(height: 4),
+              Text(
+                "Book 1", // TODO : data from backend
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+              SizedBox(height: 8),
+              Text("due date", style: TextStyle(color: Colors.grey.shade700)),
+              SizedBox(height: 12),
+              Align(
+                alignment: Alignment.bottomRight,
+                child: TextButton(
+                  onPressed: () {
+                    // TODO : implement renew
+                  },
+                  child: Text("Renew", style: TextStyle(color: Colors.purple)),
                 ),
-                SizedBox(height: 4),
-                Text(
-                  "Book 1", // TODO : data from backend
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
-                SizedBox(height: 8),
-                Text("due date", style: TextStyle(color: Colors.grey.shade700)),
-                SizedBox(height: 12),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: TextButton(
-                    onPressed: () {
-                      // TODO : implement renew
-                    },
-                    child: Text(
-                      "Renew",
-                      style: TextStyle(color: Colors.purple),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }
@@ -307,25 +288,13 @@ class BookSearchDelegate extends SearchDelegate<String> {
 
   @override
   Widget buildResults(BuildContext context) {
-    // TODO: implement buildResults
-    final List<String> searchResults =
-        searchList
-            .where((item) => item.toLowerCase().contains(query.toLowerCase()))
-            .toList();
     return Padding(
-      padding: EdgeInsets.all(12),
+      padding: const EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(padding: EdgeInsets.all(4), child: BookJournalToggle()),
-          Padding(
-            padding: EdgeInsets.all(12),
-            child: Text(
-              "Searched n results",
-              style: TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
-            ),
-          ), // TODO wait for backend
-          Expanded(child: SearchResults()),
+          Padding(padding: const EdgeInsets.all(4), child: BookJournalToggle()),
+          Expanded(child: SearchResults(query: query)),
         ],
       ),
     );
@@ -502,73 +471,419 @@ class _BookJournalToggleState extends State<BookJournalToggle> {
   }
 }
 
-class SearchResults extends StatelessWidget {
-  const SearchResults({super.key});
+class SkeletonCard extends StatelessWidget {
+  const SkeletonCard({super.key});
 
   @override
   Widget build(BuildContext context) {
+    return SizedBox(
+      width: 145,
+      child: Card(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        elevation: 0,
+        color: Theme.of(context).canvasColor,
+        child: Opacity(
+          opacity: 0.35,
+          child: Image.asset(
+            'assets/stats_book_temp.png',
+            width: 145,
+            height: 185,
+            fit: BoxFit.fill,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class BrowseCatalog extends StatefulWidget {
+  const BrowseCatalog({super.key});
+
+  @override
+  State<BrowseCatalog> createState() => _BrowseCatalogState();
+}
+
+class _BrowseCatalogState extends State<BrowseCatalog> {
+  final _service = BookService();
+  final _scrollController = ScrollController();
+  final List<BookSummary> _books = [];
+  int _currentPage = 1;
+  bool _isLoading = false;
+  bool _isFetchingMore = false;
+  bool _hasMore = true;
+  String? _error;
+  static const _perPage = 20;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPage(1);
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    final pos = _scrollController.position;
+    if (pos.pixels >= pos.maxScrollExtent * 0.7 &&
+        !_isFetchingMore &&
+        _hasMore &&
+        _error == null) {
+      _fetchPage(_currentPage + 1);
+    }
+  }
+
+  Future<void> _fetchPage(int page) async {
+    if (page == 1) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    } else {
+      setState(() {
+        _isFetchingMore = true;
+        _error = null;
+      });
+    }
+    try {
+      final response = await _service.fetchBrowse(page, _perPage);
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      final items =
+          (decoded['items'] as List)
+              .map((e) => BookSummary.fromJson(e as Map<String, dynamic>))
+              .toList();
+      setState(() {
+        _books.addAll(items);
+        _currentPage = page;
+        if (items.length < _perPage) _hasMore = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+        _isFetchingMore = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading && _books.isEmpty) {
+      return ListView(
+        scrollDirection: Axis.horizontal,
+        children: List.generate(6, (_) => const SkeletonCard()),
+      );
+    }
+    if (_books.isEmpty && !_isLoading && _error == null) {
+      return const Center(child: Text('No books available'));
+    }
+    if (_error != null && _books.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Error: $_error'),
+            TextButton(
+              onPressed: () => _fetchPage(1),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+    final itemCount =
+        _books.length + (_isFetchingMore ? 1 : 0) + (_error != null ? 1 : 0);
     return ListView.builder(
-      itemCount: 7, // TODO : from backend
-      itemBuilder: (BuildContext context, int index) {
+      controller: _scrollController,
+      scrollDirection: Axis.horizontal,
+      itemCount: itemCount,
+      itemBuilder: (context, index) {
+        if (index == _books.length && _isFetchingMore) {
+          return const SizedBox(
+            width: 80,
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (index == _books.length && _error != null) {
+          return SizedBox(
+            width: 160,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Error', style: const TextStyle(fontSize: 12)),
+                TextButton(
+                  onPressed: () => _fetchPage(_currentPage + 1),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+        final book = _books[index];
         return GestureDetector(
-          behavior: HitTestBehavior.translucent,
-          onTap: () {
-            pushWithNavBar(
-              context,
-              MaterialPageRoute(builder: (context) => BookPage()),
-            );
-
-            // pushScreenWithNavBar(context, BookPage());
-          },
-          child: SizedBox(
-            height: 178,
-              child: Padding(
-                padding: const EdgeInsets.all(8),
-                child: Row(
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                        child: Image.asset(
-                          "assets/stats_book_temp.png",
-                          width: 110,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-
-                      const SizedBox(width: 12),
-
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "Heading",
-                              style: TextStyle(
-                                fontWeight: FontWeight.w500,
-                                fontSize: 22,
-                              ),
-                            ),
-
-                            Text("Author"),
-
-                            Spacer(),
-
-                            Row(
-                              children: [
-                                Text("Availability"),
-                                Spacer(),
-                                Text("View More"),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
+          onTap:
+              () => pushWithNavBar(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => BookPage(biblioId: book.biblioId),
                 ),
               ),
+          child: SizedBox(
+            width: 145,
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 0,
+              color: Theme.of(context).canvasColor,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(15),
+                    ),
+                    child: Image.asset(
+                      'assets/stats_book_temp.png',
+                      width: 145,
+                      height: 185,
+                      fit: BoxFit.fill,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: Text(
+                      book.title,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                ],
+              ),
+            ),
+          ),
         );
       },
+    );
+  }
+}
+
+class SearchResults extends StatefulWidget {
+  final String query;
+  const SearchResults({required this.query, super.key});
+
+  @override
+  State<SearchResults> createState() => _SearchResultsState();
+}
+
+class _SearchResultsState extends State<SearchResults> {
+  final _service = BookService();
+  final _scrollController = ScrollController();
+  final List<BookSummary> _books = [];
+  int _currentPage = 1;
+  int _total = 0;
+  bool _isLoading = false;
+  bool _isFetchingMore = false;
+  bool _hasMore = true;
+  String? _error;
+  static const _perPage = 20;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPage(1);
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    final pos = _scrollController.position;
+    if (pos.pixels >= pos.maxScrollExtent * 0.7 &&
+        !_isFetchingMore &&
+        _hasMore &&
+        _error == null) {
+      _fetchPage(_currentPage + 1);
+    }
+  }
+
+  Future<void> _fetchPage(int page) async {
+    if (page == 1) {
+      setState(() {
+        _isLoading = true;
+        _error = null;
+      });
+    } else {
+      setState(() {
+        _isFetchingMore = true;
+        _error = null;
+      });
+    }
+    try {
+      final response = await _service.fetchSearch(widget.query, page, _perPage);
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      final items =
+          (decoded['items'] as List)
+              .map((e) => BookSummary.fromJson(e as Map<String, dynamic>))
+              .toList();
+      final total = decoded['total'] as int? ?? _total;
+      setState(() {
+        if (page == 1) _books.clear();
+        _books.addAll(items);
+        _total = total;
+        _currentPage = page;
+        if (items.length < _perPage) _hasMore = false;
+      });
+    } catch (e) {
+      setState(() {
+        _error = e.toString();
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+        _isFetchingMore = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(12),
+          child: Text(
+            'Searched $_total results',
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
+          ),
+        ),
+        if (_isLoading && _books.isEmpty)
+          const Center(child: CircularProgressIndicator()),
+        if (_books.isEmpty && !_isLoading && _error == null)
+          const Center(child: Text('No results found')),
+        if (_error != null && _books.isEmpty)
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Error: $_error'),
+                TextButton(
+                  onPressed: () => _fetchPage(1),
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          ),
+        if (_books.isNotEmpty || _isFetchingMore)
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              itemCount:
+                  _books.length +
+                  (_isFetchingMore ? 1 : 0) +
+                  (_error != null ? 1 : 0),
+              itemBuilder: (context, index) {
+                if (index == _books.length && _isFetchingMore) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (index == _books.length && _error != null) {
+                  return Column(
+                    children: [
+                      Text('Error: $_error'),
+                      TextButton(
+                        onPressed: () => _fetchPage(_currentPage + 1),
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  );
+                }
+                final book = _books[index];
+                return GestureDetector(
+                  behavior: HitTestBehavior.translucent,
+                  onTap: () {
+                    pushWithNavBar(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => BookPage(biblioId: book.biblioId),
+                      ),
+                    );
+                  },
+                  child: SizedBox(
+                    height: 178,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Row(
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: Image.asset('assets/stats_book_temp.png'),
+                          ),
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    book.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                                  Text(book.authors.isNotEmpty ? book.authors[0] : ''),
+                                  const Expanded(child: SizedBox()),
+                                  Row(
+                                    children: [
+                                      Text(
+                                        book.availableCopies > 0
+                                            ? 'Available'
+                                            : 'Unavailable',
+                                        style: TextStyle(
+                                          color: book.availableCopies > 0
+                                              ? Colors.green
+                                              : Colors.red,
+                                        ),
+                                      ),
+                                      const Spacer(),
+                                      const Text('View More'),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+      ],
     );
   }
 }

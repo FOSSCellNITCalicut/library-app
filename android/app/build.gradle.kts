@@ -9,7 +9,7 @@ android {
     namespace = "in.ac.nitc.library_nitc"
     compileSdk = flutter.compileSdkVersion
     // pinning ndkVersion here requires the exact version to be installed; omit it to use the default NDK bundled with AGP
-    // ndkVersion = "27.0.12077973"
+    ndkVersion = "28.2.13676358"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
