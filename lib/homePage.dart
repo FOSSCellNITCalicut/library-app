@@ -838,45 +838,41 @@ class _SearchResultsState extends State<SearchResults> {
                             borderRadius: BorderRadius.circular(14),
                             child: Image.asset('assets/stats_book_temp.png'),
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  book.title,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 22,
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    book.title,
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w500,
+                                      fontSize: 18,
+                                    ),
                                   ),
-                                ),
-                                Text(
-                                  book.authors.isNotEmpty
-                                      ? book.authors[0]
-                                      : '',
-                                ),
-                                const Expanded(child: SizedBox()),
-                                SizedBox(
-                                  width: MediaQuery.sizeOf(context).width - 183,
-                                  child: Row(
+                                  Text(book.authors.isNotEmpty ? book.authors[0] : ''),
+                                  const Expanded(child: SizedBox()),
+                                  Row(
                                     children: [
                                       Text(
                                         book.availableCopies > 0
                                             ? 'Available'
                                             : 'Unavailable',
                                         style: TextStyle(
-                                          color:
-                                              book.availableCopies > 0
-                                                  ? Colors.green
-                                                  : Colors.red,
+                                          color: book.availableCopies > 0
+                                              ? Colors.green
+                                              : Colors.red,
                                         ),
                                       ),
                                       const Spacer(),
                                       const Text('View More'),
                                     ],
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ],

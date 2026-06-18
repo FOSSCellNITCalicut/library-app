@@ -221,7 +221,6 @@ class BookDetailCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           /// TOP SECTION   book title author availability
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -313,11 +312,53 @@ class BookDetailCard extends StatelessWidget {
                   .toList(),
             ),
           ],
+
+          const SizedBox(height: 12),
+
+          /// ACTION BUTTONS
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {},
+                  child: const Text(
+                    "Text",
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+              SizedBox(width: 8),
+
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {},
+                  child: const Text(
+                    "General Books",
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+              SizedBox(width: 8),
+
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: available ? () {} : null,
+                  icon: const Icon(Icons.bookmark),
+                  label: const Text(
+                    "Place Hold",
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
+            ],
+          )
         ],
       ),
     );
   }
 }
+
+
 class HoldingsList extends StatelessWidget {
   final List<BookCopy> copies;
   const HoldingsList({super.key, required this.copies});
