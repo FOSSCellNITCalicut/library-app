@@ -3,13 +3,19 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:library_nitc/globals.dart';
-import 'package:library_nitc/homePage.dart';
+
 import 'package:library_nitc/main.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:library_nitc/services/book_service.dart';
 import 'package:library_nitc/models/book_details.dart';
 
+class BookPage extends StatefulWidget {
+  final int biblioId;
+  const BookPage({required this.biblioId, super.key});
 
+  @override
+  State<StatefulWidget> createState() => _BookPageState();
+}
 
 class _BookPageState extends State<BookPage> {
 
@@ -112,7 +118,7 @@ class _BookPageState extends State<BookPage> {
   );
 }
 
-  //error      not much ui can be done later if needed
+  //error      not much ui is done later if needed
   if (hasError) {
     return Scaffold(
       body: Center(
