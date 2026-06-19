@@ -158,7 +158,6 @@ class PlaceHoldResult {
 
   PlaceHoldResult({required this.success, required this.message});
 }
-
 /// Fetches the data behind the Profile and Fines pages.
 ///
 /// The three fetches (profile / fines / fines history) are independent --
