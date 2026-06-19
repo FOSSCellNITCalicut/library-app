@@ -15,6 +15,7 @@ import 'package:library_nitc/user_provider.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:provider/provider.dart';
 import 'package:library_nitc/browsePage.dart';
+import 'package:library_nitc/bookCoverImage.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -995,8 +996,9 @@ class _BrowseCatalogState extends State<BrowseCatalog> {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(15),
                     ),
-                    child: Image.asset(
-                      'assets/stats_book_temp.png',
+                    child: BookCoverImage(
+                      coverUrl: book.coverUrl,
+                      isbn: book.isbn,
                       width: 145,
                       height: 185,
                       fit: BoxFit.fill,
@@ -1180,7 +1182,13 @@ class _SearchResultsState extends State<SearchResults> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(14),
-                            child: Image.asset('assets/stats_book_temp.png'),
+                            child: BookCoverImage(
+                              coverUrl: book.coverUrl,
+                              isbn: book.isbn,
+                              width: 108,
+                              height: 162,
+                              fit: BoxFit.fill,
+                            ),
                           ),
                           Expanded(
                             child: Padding(
