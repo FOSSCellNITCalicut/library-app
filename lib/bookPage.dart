@@ -2,12 +2,19 @@ import 'package:date_field/date_field.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:library_nitc/auth_provider.dart';
 import 'package:library_nitc/globals.dart';
+import 'package:library_nitc/user_provider.dart';
+import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'package:library_nitc/main.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:library_nitc/services/book_service.dart';
 import 'package:library_nitc/models/book_details.dart';
+
+// Public OPAC URL, matches the backend's default KOHA_OPAC_URL.
+const String _opacBaseUrl = 'https://opac.nitc.ac.in';
 
 class BookPage extends StatefulWidget {
   final int biblioId;
@@ -186,10 +193,63 @@ class _BookPageState extends State<BookPage> {
 
 
 
-class BookDetailCard extends StatelessWidget {
+class BookDetailCard extends StatefulWidget {
   final BookDetail book;
 
   const BookDetailCard({super.key, required this.book});
+
+  @override
+  State<BookDetailCard> createState() => _BookDetailCardState();
+}
+
+class _BookDetailCardState extends State<BookDetailCard> {
+  bool? _borrowedByCurrentUser;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkOwnership();
+  }
+
+  Future<void> _checkOwnership() async {
+    final auth = context.read<AuthProvider>();
+    final token = auth.accessToken;
+    if (token == null) return;
+
+    try {
+      final borrowed = await context
+          .read<UserProvider>()
+          .fetchBookStatus(token, widget.book.biblioId);
+      if (mounted) setState(() => _borrowedByCurrentUser = borrowed);
+    } catch (_) {
+      // Leave _borrowedByCurrentUser null -- falls back to "Place Hold" below.
+    }
+  }
+
+  void _showRenewDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Renew"),
+        content: const Text(
+          "In-app renewal isn't available yet. Please renew this book on the OPAC website.",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+              launchUrl(Uri.parse(_opacBaseUrl), mode: LaunchMode.externalApplication);
+            },
+            child: const Text("Open OPAC website"),
+          ),
+        ],
+      ),
+    );
+  }
 
   Widget _infoRow(String label, String value) {
     return Padding(
@@ -211,7 +271,9 @@ class BookDetailCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final book = widget.book;
     final available = book.isAvailable;
+    final borrowed = _borrowedByCurrentUser ?? false;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -340,15 +402,34 @@ class BookDetailCard extends StatelessWidget {
               ),
               SizedBox(width: 8),
 
+              // Shows "Renew" if GET /user/book-status confirmed this book is
+              // currently borrowed by the logged-in user, otherwise "Place Hold".
+              // Defaults to "Place Hold" while loading / when logged out / on error.
               Expanded(
-                child: FilledButton.icon(
-                  onPressed: available ? () {} : null,
-                  icon: const Icon(Icons.bookmark),
-                  label: const Text(
-                    "Place Hold",
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
+                child: borrowed
+                    ? FilledButton.icon(
+                        onPressed: () => _showRenewDialog(context),
+                        icon: const Icon(Icons.redo),
+                        label: const Text(
+                          "Renew",
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      )
+                    : FilledButton.icon(
+                        onPressed: available
+                            ? () {
+                                pushWithNavBar(
+                                  context,
+                                  MaterialPageRoute(builder: (context) => PlaceHoldScreen()),
+                                );
+                              }
+                            : null,
+                        icon: const Icon(Icons.bookmark),
+                        label: const Text(
+                          "Place Hold",
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
               ),
             ],
           )
