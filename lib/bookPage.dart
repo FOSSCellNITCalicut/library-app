@@ -162,9 +162,14 @@ class _BookPageState extends State<BookPage> {
         onPressed: () => Navigator.of(context).pop(),
         icon: Icon(Icons.arrow_back),
       ),
+      title: Text(b.title, overflow: TextOverflow.ellipsis),
     ),
 
-    body: Padding(
+    // SingleChildScrollView (instead of a bare Column+Expanded) so the page
+    // scrolls instead of overflowing when there's less vertical room --
+    // e.g. landscape orientation, where BookDetailCard's fixed-height image
+    // plus text easily exceeds the available height.
+    body: SingleChildScrollView(
       padding: EdgeInsets.all(12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -180,9 +185,7 @@ class _BookPageState extends State<BookPage> {
 
           SizedBox(height: 8),
 
-          Expanded(
-            child: HoldingsList(copies: b.copies),
-          )
+          HoldingsList(copies: b.copies),
         ],
       ),
     ),
@@ -446,8 +449,14 @@ class HoldingsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // shrinkWrap + NeverScrollableScrollPhysics: this list now sits inside
+    // the page's own SingleChildScrollView, so it should size itself to its
+    // content and let the outer scroll view handle scrolling, instead of
+    // demanding bounded height from a parent Expanded.
     return ListView.builder(
-      itemCount: copies.length, 
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      itemCount: copies.length,
       itemBuilder: (BuildContext context, int index) {
         final copy = copies[index];
 
