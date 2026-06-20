@@ -213,7 +213,7 @@ class _PaymentPageState extends State<PaymentPage> {
                   SizedBox(height: 8),
                   Divider(),
                   SizedBox(height: 8),
-                  const _PayOnOpacSection(),
+                  _PayOnOpacSection(outstandingFine: userProvider.outstandingFine),
                 ],
               ),
             );
@@ -228,24 +228,33 @@ class _PaymentPageState extends State<PaymentPage> {
 /// backend support for collecting payment, so this just sends the user there
 /// instead of pretending to process a payment.
 class _PayOnOpacSection extends StatelessWidget {
-  const _PayOnOpacSection();
+  final double? outstandingFine;
+  const _PayOnOpacSection({required this.outstandingFine});
 
   @override
   Widget build(BuildContext context) {
+    // Disabled while the fine hasn't loaded yet (null) or is actually zero --
+    // nothing to pay, so an active "Pay Now" button would just be confusing.
+    final hasFine = (outstandingFine ?? 0) > 0;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "Login on the OPAC website and pay your dues there.",
-          style: TextStyle(fontSize: 15, color: Colors.black87),
+        Text(
+          hasFine
+              ? "Login on the OPAC website and pay your dues there."
+              : "You have no outstanding dues.",
+          style: const TextStyle(fontSize: 15, color: Colors.black87),
         ),
         const SizedBox(height: 16),
         SizedBox(
           width: double.infinity,
           child: FilledButton.icon(
-            onPressed: () {
-              launchUrl(Uri.parse(_opacBaseUrl), mode: LaunchMode.externalApplication);
-            },
+            onPressed: hasFine
+                ? () {
+                    launchUrl(Uri.parse(_opacBaseUrl), mode: LaunchMode.externalApplication);
+                  }
+                : null,
             icon: const Icon(Icons.open_in_new),
             label: const Text("Pay Now"),
           ),
