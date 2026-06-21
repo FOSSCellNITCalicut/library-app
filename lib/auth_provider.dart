@@ -5,7 +5,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 // Change this to the actual backend URL when deploying.
-const String _backendBaseUrl = 'http://10.0.2.2:8000'; // localhost for Android emulator
+const String _backendBaseUrl = 'http://192.168.1.37:8000'; // localhost for Android emulator
 
 const String _refreshTokenKey = 'refresh_token';
 

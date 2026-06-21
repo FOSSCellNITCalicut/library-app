@@ -8,11 +8,17 @@ import 'package:library_nitc/main.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:library_nitc/services/book_service.dart';
 import 'package:library_nitc/models/book_details.dart';
+import 'package:provider/provider.dart';
+import 'package:library_nitc/auth_provider.dart';
+import 'package:library_nitc/profilePage.dart';
+
+enum BookButtonState { login, loading, renew, renewed, checkAvailability, placeHold, unavailable }
 
 class BookPage extends StatefulWidget {
   final int biblioId;
-  const BookPage({required this.biblioId, super.key});
-
+  final BookDetail? bookDetail;
+  
+  const BookPage({required this.biblioId, this.bookDetail, super.key});
   @override
   State<StatefulWidget> createState() => _BookPageState();
 }
@@ -21,41 +27,93 @@ class _BookPageState extends State<BookPage> {
 
   
 
-  final BookService _service = BookService();
+  late BookService _service;
+
+  
 
   BookDetail? book;
   bool loading = true;
   bool hasError = false;
 
+  bool? borrowedByMe;
+
+  bool? isAvailable;
+  bool checkingAvailability = false;
+  bool availabilityError = false;
+  bool renewed = false;
+
   @override
   void initState() {
     super.initState();
+    final token = context.read<AuthProvider>().accessToken;
+    _service = BookService(token: token);
     load();
   }
 
   Future<void> load() async {
-  try {
-    setState(() {
-      loading = true;
-      hasError = false;
-    });
+    try {
+      setState(() {
+        loading = true;
+        hasError = false;
+      });
 
-    //await Future.delayed(const Duration(seconds: 2));  //to see loading page
+      if (widget.bookDetail != null) {
+        book = widget.bookDetail;
+      } else {
+        book = await _service.getBookDetail(widget.biblioId);
+      }
 
+      final loggedIn = context.read<AuthProvider>().isLoggedIn;
+      if (loggedIn) {
+        try {
+          borrowedByMe = await _service.getBookStatus(widget.biblioId);
+        } catch (_) {
+          borrowedByMe = false;
+        }
+      }
+      // If not logged in, borrowedByMe stays null — BookDetailCard treats
+      // "not logged in" as its own state, checked before borrowedByMe.
 
-    final data = await _service.getBookDetail(widget.biblioId);
-
-    setState(() {
-      book = data;
-      loading = false;
-    });
-  } catch (e) {
-    setState(() {
-      loading = false;
-      hasError = true;
-    });
+      setState(() {
+        loading = false;
+      });
+    } catch (_) {
+      setState(() {
+        loading = false;
+        hasError = true;
+      });
+    }
   }
-}
+
+  Future<void> checkAvailability() async {
+    setState(() {
+      checkingAvailability = true;
+      availabilityError = false;
+    });
+
+    try {
+      final result =
+          await _service.checkAvailability(widget.biblioId);
+
+      setState(() {
+        isAvailable = result.available;
+        checkingAvailability = false;
+      });
+    } catch (_) {
+      setState(() {
+        checkingAvailability = false;
+        availabilityError = true;
+        isAvailable = null; // reset button back to "Check Availability" so the user can reta
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to fetch latest availability')),
+        );
+      }
+    }
+  }
+
+
   @override
 
   Widget build(BuildContext context) {
@@ -162,7 +220,21 @@ class _BookPageState extends State<BookPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          BookDetailCard(book: b),
+          BookDetailCard(
+            book: b,
+            isLoggedIn: context.watch<AuthProvider>().isLoggedIn,
+            borrowedByMe: borrowedByMe,
+            isAvailable: isAvailable,
+            checkingAvailability: checkingAvailability,
+            availabilityError: availabilityError,
+            onCheckAvailability: checkAvailability,
+            renewed: renewed,
+              onRenewPressed: () {
+                setState(() {
+                  renewed = true;
+                });
+  },
+          ),
 
           SizedBox(height: 8),
 
@@ -188,9 +260,26 @@ class _BookPageState extends State<BookPage> {
 
 class BookDetailCard extends StatelessWidget {
   final BookDetail book;
-
-  const BookDetailCard({super.key, required this.book});
-
+  final bool isLoggedIn;
+  final bool? borrowedByMe;
+  final bool? isAvailable;
+  final bool checkingAvailability;
+  final bool availabilityError;
+  final VoidCallback onCheckAvailability;
+  final bool renewed;
+  final VoidCallback onRenewPressed;
+  const BookDetailCard({
+    super.key,
+    required this.book,
+    required this.isLoggedIn,
+    required this.borrowedByMe,
+    required this.isAvailable,
+    required this.checkingAvailability,
+    required this.availabilityError,
+    required this.onCheckAvailability,
+    required this.renewed,
+    required this.onRenewPressed,
+  });
   Widget _infoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -209,9 +298,25 @@ class BookDetailCard extends StatelessWidget {
     );
   }
 
+  BookButtonState _resolveState() {
+    if (!isLoggedIn) return BookButtonState.login;
+    if (checkingAvailability) return BookButtonState.loading;
+
+    if (borrowedByMe == null) return BookButtonState.loading;
+    
+    if (borrowedByMe == true) {
+      return renewed ? BookButtonState.renewed : BookButtonState.renew;
+    }
+    if (isAvailable == null) return BookButtonState.checkAvailability;
+    return isAvailable! ? BookButtonState.placeHold : BookButtonState.unavailable;
+  }
+
+
   @override
   Widget build(BuildContext context) {
-    final available = book.isAvailable;
+    
+
+   
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -257,15 +362,7 @@ class BookDetailCard extends StatelessWidget {
                       style: const TextStyle(color: Colors.black54),
                     ),
 
-                    const SizedBox(height: 6),
-
-                    Text(
-                      available ? "Available" : "Unavailable",
-                      style: TextStyle(
-                        color: available ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
+                    
                   ],
                 ),
               ),
@@ -316,6 +413,7 @@ class BookDetailCard extends StatelessWidget {
           const SizedBox(height: 12),
 
           /// ACTION BUTTONS
+                   /// ACTION BUTTONS
           Row(
             children: [
               Expanded(
@@ -327,7 +425,7 @@ class BookDetailCard extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
 
               Expanded(
                 child: OutlinedButton(
@@ -338,20 +436,95 @@ class BookDetailCard extends StatelessWidget {
                   ),
                 ),
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
 
               Expanded(
-                child: FilledButton.icon(
-                  onPressed: available ? () {} : null,
-                  icon: const Icon(Icons.bookmark),
-                  label: const Text(
-                    "Place Hold",
-                    overflow: TextOverflow.ellipsis,
-                  ),
+                child: Builder(
+                  builder: (context) {
+                    final state = _resolveState();
+
+                    switch (state) {
+                      case BookButtonState.login:
+                        return ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).colorScheme.error.withOpacity(0.85),
+                          foregroundColor: Colors.white,
+),
+                          onPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>  ProfilePage(),
+                            ),
+                          ),
+                          child: const Text("Login"),
+                        );
+
+                      case BookButtonState.loading:
+                        return ElevatedButton(
+                          onPressed: null,
+                          child: const SizedBox(
+                            height: 18,
+                            width: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        );
+
+                      case BookButtonState.renew:
+                        return ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green.shade700,
+                            foregroundColor: Colors.white,
+                          ),
+                          onPressed: onRenewPressed,
+                          child: const Text("Renew",
+                              overflow: TextOverflow.ellipsis),
+                        );
+
+                      case BookButtonState.renewed:
+                        return  ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green.shade700,
+                          foregroundColor: Colors.white,
+                        ),
+                          onPressed: null,
+                          child: Text("Renewed",
+                              overflow: TextOverflow.ellipsis),
+                        );
+
+                      case BookButtonState.checkAvailability:
+                        return ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.amber.shade700,
+                                foregroundColor: Colors.black,
+                              ),
+                          onPressed: onCheckAvailability,
+                          child: const Text("Check Availability",
+                              overflow: TextOverflow.ellipsis),
+                        );
+
+                      case BookButtonState.placeHold:
+                        return ElevatedButton(
+                           style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green.shade700,
+                            foregroundColor: Colors.white,
+                          ),
+                          
+                          onPressed: () {},
+                          child: const Text("Place Hold",
+                              overflow: TextOverflow.ellipsis),
+                        );
+
+                      case BookButtonState.unavailable:
+                        return ElevatedButton(
+                          onPressed: onCheckAvailability,
+                          child: const Text("Check Again",
+                              overflow: TextOverflow.ellipsis),
+                        );
+                    }
+                  },
                 ),
               ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -650,4 +823,3 @@ class ConfirmedBookingPage extends StatelessWidget {
   }
 
 }
-

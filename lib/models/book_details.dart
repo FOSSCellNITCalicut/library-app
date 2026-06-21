@@ -101,3 +101,26 @@ class BookCopy {
     );
   }
 }
+
+class BookAvailability {
+  final int biblioId;
+  final bool available;
+  final int availableCopies;
+  final int totalCopies;
+
+  BookAvailability({
+    required this.biblioId,
+    required this.available,
+    required this.availableCopies,
+    required this.totalCopies,
+  });
+
+  factory BookAvailability.fromJson(Map<String, dynamic> json) {
+    return BookAvailability(
+      biblioId: (json['biblio_id'] ?? 0) as int,
+      available: json['available'] as bool? ?? false,
+      availableCopies: (json['available_copies'] ?? 0) as int,
+      totalCopies: (json['total_copies'] ?? 0) as int,
+    );
+  }
+}
