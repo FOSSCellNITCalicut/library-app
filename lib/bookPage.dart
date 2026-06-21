@@ -10,9 +10,8 @@ import 'package:library_nitc/services/book_service.dart';
 import 'package:library_nitc/models/book_details.dart';
 import 'package:provider/provider.dart';
 import 'package:library_nitc/auth_provider.dart';
-import 'package:library_nitc/profilePage.dart';
 
-enum BookButtonState { login, loading, renew, renewed, checkAvailability, placeHold, unavailable }
+enum BookButtonState { loading, renew, renewed, checkAvailability, placeHold}
 
 class BookPage extends StatefulWidget {
   final int biblioId;
@@ -299,16 +298,19 @@ class BookDetailCard extends StatelessWidget {
   }
 
   BookButtonState _resolveState() {
-    if (!isLoggedIn) return BookButtonState.login;
+    
     if (checkingAvailability) return BookButtonState.loading;
 
-    if (borrowedByMe == null) return BookButtonState.loading;
+    if(isLoggedIn) {
+      if (borrowedByMe == null) return BookButtonState.loading;
+      if (borrowedByMe == true) {
+        return renewed ? BookButtonState.renewed : BookButtonState.renew;
+      }
+    } 
+
     
-    if (borrowedByMe == true) {
-      return renewed ? BookButtonState.renewed : BookButtonState.renew;
-    }
     if (isAvailable == null) return BookButtonState.checkAvailability;
-    return isAvailable! ? BookButtonState.placeHold : BookButtonState.unavailable;
+    return isAvailable! ? BookButtonState.placeHold : BookButtonState.checkAvailability;
   }
 
 
@@ -444,22 +446,14 @@ class BookDetailCard extends StatelessWidget {
                     final state = _resolveState();
 
                     switch (state) {
-                      case BookButtonState.login:
-                        return ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                          backgroundColor: Theme.of(context).colorScheme.error.withOpacity(0.85),
-                          foregroundColor: Colors.white,
-),
-                          onPressed: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (_) =>  ProfilePage(),
-                            ),
-                          ),
-                          child: const Text("Login"),
-                        );
+                      
 
                       case BookButtonState.loading:
                         return ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Colors.white,
+                          ),
                           onPressed: null,
                           child: const SizedBox(
                             height: 18,
@@ -471,7 +465,7 @@ class BookDetailCard extends StatelessWidget {
                       case BookButtonState.renew:
                         return ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green.shade700,
+                            backgroundColor: Theme.of(context).colorScheme.primary,
                             foregroundColor: Colors.white,
                           ),
                           onPressed: onRenewPressed,
@@ -482,9 +476,9 @@ class BookDetailCard extends StatelessWidget {
                       case BookButtonState.renewed:
                         return  ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green.shade700,
-                          foregroundColor: Colors.white,
-                        ),
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Colors.white,
+                          ),
                           onPressed: null,
                           child: Text("Renewed",
                               overflow: TextOverflow.ellipsis),
@@ -493,9 +487,9 @@ class BookDetailCard extends StatelessWidget {
                       case BookButtonState.checkAvailability:
                         return ElevatedButton(
                           style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.amber.shade700,
-                                foregroundColor: Colors.black,
-                              ),
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            foregroundColor: Colors.white,
+                          ),
                           onPressed: onCheckAvailability,
                           child: const Text("Check Availability",
                               overflow: TextOverflow.ellipsis),
@@ -503,22 +497,18 @@ class BookDetailCard extends StatelessWidget {
 
                       case BookButtonState.placeHold:
                         return ElevatedButton(
-                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green.shade700,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
                             foregroundColor: Colors.white,
                           ),
+                           
                           
                           onPressed: () {},
                           child: const Text("Place Hold",
                               overflow: TextOverflow.ellipsis),
                         );
 
-                      case BookButtonState.unavailable:
-                        return ElevatedButton(
-                          onPressed: onCheckAvailability,
-                          child: const Text("Check Again",
-                              overflow: TextOverflow.ellipsis),
-                        );
+                      
                     }
                   },
                 ),
