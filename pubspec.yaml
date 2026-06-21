@@ -41,7 +41,6 @@ dependencies:
   date_field: ^6.0.3+1
   intl: ^0.20.2
   flutter_native_splash: ^2.4.6
-  upi_payment_qrcode_generator: ^1.6.0
   chat_bubbles: ^1.7.0
   font_awesome_flutter: ^11.0.0
   url_launcher: ^6.3.1
