@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 
 // Matches auth_provider.dart -- localhost alias for the Android emulator.
-const String _backendBaseUrl = 'http://10.0.2.2:8000';
+const String _backendBaseUrl = 'http://localhost:8000';
 
 class CheckedOutBook {
   final int biblioId;
