@@ -87,6 +87,45 @@ class FineHistoryItem {
   }
 }
 
+class PickupBranch {
+  final String code;
+  final String name;
+  final bool isDefault;
+
+  PickupBranch({required this.code, required this.name, required this.isDefault});
+
+  factory PickupBranch.fromJson(Map<String, dynamic> json) {
+    return PickupBranch(
+      code: json['code'] as String,
+      name: json['name'] as String,
+      isDefault: json['is_default'] as bool? ?? false,
+    );
+  }
+}
+
+class HoldForm {
+  final bool holdable;
+  final List<PickupBranch> branches;
+
+  HoldForm({required this.holdable, required this.branches});
+
+  factory HoldForm.fromJson(Map<String, dynamic> json) {
+    return HoldForm(
+      holdable: json['holdable'] as bool? ?? false,
+      branches: (json['branches'] as List<dynamic>? ?? [])
+          .map((e) => PickupBranch.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+}
+
+class PlaceHoldResult {
+  final bool success;
+  final String message;
+
+  PlaceHoldResult({required this.success, required this.message});
+}
+
 /// Fetches the data behind the Profile and Fines pages.
 ///
 /// The three fetches (profile / fines / fines history) are independent --
@@ -185,5 +224,41 @@ class UserProvider extends ChangeNotifier {
     }
     final data = jsonDecode(response.body) as Map<String, dynamic>;
     return data['borrowed_by_current_user'] as bool? ?? false;
+  }
+
+  /// One-off lookup for PlaceHoldScreen: which pickup branches are offered
+  /// and whether Koha will accept a hold on this book at all.
+  /// Throws on any failure; callers should show a "try the OPAC website" state.
+  Future<HoldForm> fetchHoldForm(String accessToken, int biblioId) async {
+    final response = await http.get(
+      Uri.parse('$_backendBaseUrl/api/v1/user/holds/$biblioId/form'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+    if (response.statusCode != 200) {
+      throw 'Server error (${response.statusCode})';
+    }
+    return HoldForm.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+  }
+
+  /// Submits the hold. Never throws on a Koha-side rejection -- that comes
+  /// back as PlaceHoldResult(success: false, message: ...) so the caller can
+  /// show Koha's actual reason instead of a generic error.
+  Future<PlaceHoldResult> placeHold(String accessToken, int biblioId, String branchCode) async {
+    final response = await http.post(
+      Uri.parse('$_backendBaseUrl/api/v1/user/holds/$biblioId'),
+      headers: {
+        'Authorization': 'Bearer $accessToken',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'branch_code': branchCode}),
+    );
+    if (response.statusCode != 200) {
+      throw 'Server error (${response.statusCode})';
+    }
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return PlaceHoldResult(
+      success: data['success'] as bool? ?? false,
+      message: data['message'] as String? ?? 'Could not place hold.',
+    );
   }
 }
