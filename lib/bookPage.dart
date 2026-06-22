@@ -341,6 +341,17 @@ class _BookDetailCardState extends State<BookDetailCard> {
                   ),
                 ),
               ),
+              SizedBox(width: 8),
+
+              Expanded(
+                child: FilledButton(
+                  onPressed: () {},
+                  child: const Text(
+                    "Confirm Availability",
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ),
             ],
           )
         ],
