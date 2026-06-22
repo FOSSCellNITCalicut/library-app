@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:library_nitc/auth_provider.dart';
 import 'package:library_nitc/authScreen.dart';
 import 'package:library_nitc/bookPage.dart';
+import 'package:library_nitc/holdsPage.dart';
 import 'package:library_nitc/paymentPage.dart';
 import 'package:library_nitc/user_provider.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
@@ -185,6 +186,14 @@ class _ProfileContentState extends State<_ProfileContent> {
                       tileColor: Colors.purple.shade50,
                       onTap: () {
                         pushScreenWithNavBar(context, PaymentHistoryPage());
+                      },
+                    ),
+                    ListTile(
+                      leading: const Icon(Icons.bookmark_outline),
+                      title: const Text('Your Holds'),
+                      tileColor: Colors.purple.shade50,
+                      onTap: () {
+                        pushScreenWithNavBar(context, HoldsPage());
                       },
                     ),
                     if (profile != null) ...[

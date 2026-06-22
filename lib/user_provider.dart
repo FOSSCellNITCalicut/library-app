@@ -119,6 +119,39 @@ class HoldForm {
   }
 }
 
+class HoldItem {
+  final String reserveId;
+  final int biblioId;
+  final String title;
+  final String branch;
+  final String status;
+
+  HoldItem({
+    required this.reserveId,
+    required this.biblioId,
+    required this.title,
+    required this.branch,
+    required this.status,
+  });
+
+  factory HoldItem.fromJson(Map<String, dynamic> json) {
+    return HoldItem(
+      reserveId: json['reserve_id'] as String,
+      biblioId: json['biblio_id'] as int,
+      title: json['title'] as String? ?? '',
+      branch: json['branch'] as String? ?? '',
+      status: json['status'] as String? ?? '',
+    );
+  }
+}
+
+class CancelHoldResult {
+  final bool success;
+  final String message;
+
+  CancelHoldResult({required this.success, required this.message});
+}
+
 class PlaceHoldResult {
   final bool success;
   final String message;
@@ -143,6 +176,10 @@ class UserProvider extends ChangeNotifier {
   List<FineHistoryItem>? fineHistory;
   bool historyLoading = false;
   String? historyError;
+
+  List<HoldItem>? holds;
+  bool holdsLoading = false;
+  String? holdsError;
 
   Future<void> fetchProfile(String accessToken) async {
     profileLoading = true;
@@ -260,5 +297,53 @@ class UserProvider extends ChangeNotifier {
       success: data['success'] as bool? ?? false,
       message: data['message'] as String? ?? 'Could not place hold.',
     );
+  }
+
+  Future<void> fetchHolds(String accessToken) async {
+    holdsLoading = true;
+    holdsError = null;
+    notifyListeners();
+    try {
+      final response = await http.get(
+        Uri.parse('$_backendBaseUrl/api/v1/user/holds'),
+        headers: {'Authorization': 'Bearer $accessToken'},
+      );
+      if (response.statusCode != 200) {
+        throw 'Server error (${response.statusCode})';
+      }
+      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      holds = (data['items'] as List<dynamic>? ?? [])
+          .map((e) => HoldItem.fromJson(e as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      holdsError = 'Could not load your holds.';
+    } finally {
+      holdsLoading = false;
+      notifyListeners();
+    }
+  }
+
+  /// Never throws on a Koha-side rejection -- comes back as
+  /// CancelHoldResult(success: false, message: ...) so the caller can show
+  /// Koha's actual reason. On success, removes the hold from the cached list
+  /// so the screen updates without a full re-fetch.
+  Future<CancelHoldResult> cancelHold(String accessToken, String reserveId) async {
+    final response = await http.post(
+      Uri.parse('$_backendBaseUrl/api/v1/user/holds/$reserveId/cancel'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+    if (response.statusCode != 200) {
+      throw 'Server error (${response.statusCode})';
+    }
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final result = CancelHoldResult(
+      success: data['success'] as bool? ?? false,
+      message: data['message'] as String? ?? 'Could not cancel hold.',
+    );
+    if (result.success) {
+      holds = holds?.where((h) => h.reserveId != reserveId).toList();
+      notifyListeners();
+    }
+    return result;
   }
 }
