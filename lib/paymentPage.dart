@@ -148,7 +148,7 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
           padding: EdgeInsets.all(12),
           margin: const EdgeInsets.only(bottom: 8),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -160,7 +160,14 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
                   ),
                 ],
               ),
-              Text(item.status, style: TextStyle(fontWeight: FontWeight.w500)),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  item.status,
+                  textAlign: TextAlign.right,
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                ),
+              ),
             ],
           ),
         );
