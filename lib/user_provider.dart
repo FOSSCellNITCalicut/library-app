@@ -8,23 +8,32 @@ const String _backendBaseUrl = 'http://localhost:8000';
 
 class CheckedOutBook {
   final int biblioId;
+  final int itemNumber;
   final String title;
   final String author;
   final String dueDate;
+  final int renewalsAllowed;
+  final int renewalsRemaining;
 
   CheckedOutBook({
     required this.biblioId,
+    required this.itemNumber,
     required this.title,
     required this.author,
     required this.dueDate,
+    required this.renewalsAllowed,
+    required this.renewalsRemaining,
   });
 
   factory CheckedOutBook.fromJson(Map<String, dynamic> json) {
     return CheckedOutBook(
       biblioId: json['biblio_id'] as int,
+      itemNumber: json['item_number'] as int? ?? 0,
       title: json['title'] as String? ?? '',
       author: json['author'] as String? ?? '',
       dueDate: json['due_date'] as String? ?? '',
+      renewalsAllowed: json['renewals_allowed'] as int? ?? 0,
+      renewalsRemaining: json['renewals_remaining'] as int? ?? 0,
     );
   }
 }
@@ -150,6 +159,13 @@ class CancelHoldResult {
   final String message;
 
   CancelHoldResult({required this.success, required this.message});
+}
+
+class RenewResult {
+  final bool success;
+  final String message;
+
+  RenewResult({required this.success, required this.message});
 }
 
 class PlaceHoldResult {
@@ -320,6 +336,29 @@ class UserProvider extends ChangeNotifier {
       holdsLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Renews a checked-out book. On success, re-fetches the profile so the
+  /// updated due date and remaining renewal count are reflected immediately.
+  /// Never throws on a Koha-side rejection -- that comes back as
+  /// RenewResult(success: false, message: ...).
+  Future<RenewResult> renewBook(String accessToken, int itemNumber) async {
+    final response = await http.post(
+      Uri.parse('$_backendBaseUrl/api/v1/user/renew/$itemNumber'),
+      headers: {'Authorization': 'Bearer $accessToken'},
+    );
+    if (response.statusCode != 200) {
+      throw 'Server error (${response.statusCode})';
+    }
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    final result = RenewResult(
+      success: data['success'] as bool? ?? false,
+      message: data['message'] as String? ?? 'Could not renew.',
+    );
+    if (result.success) {
+      await fetchProfile(accessToken);
+    }
+    return result;
   }
 
   /// Never throws on a Koha-side rejection -- comes back as
