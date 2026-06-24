@@ -17,6 +17,7 @@ class BrowsePage extends StatefulWidget {
 
 class _BrowsePageState extends State<BrowsePage> {
   final SearchController searchController = SearchController();
+  final FocusNode focusNode = FocusNode();
 
   SearchState currentState = SearchState.initial;
 
@@ -29,6 +30,23 @@ class _BrowsePageState extends State<BrowsePage> {
     "Journals",
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    focusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    focusNode.removeListener(_onFocusChange);
+    focusNode.dispose();
+    searchController.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChange() {
+    setState(() {});
+  }
 
 // future API integration
 Future<List<int>> searchBooks(String searchTerm) async {
@@ -65,7 +83,10 @@ Future<void> performSearch() async {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final keyboardIsOpen = focusNode.hasFocus;
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: const Text("Browse"),
         leading: IconButton(
@@ -76,79 +97,87 @@ Future<void> performSearch() async {
         ),
       ),
 
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            // Search Bar + AI Button
-      SearchBar(
-        controller: searchController,
-        leading: const Icon(Icons.search),
-        hintText: "Search Books, eBooks...",
-        padding: const WidgetStatePropertyAll<EdgeInsets>(
-          EdgeInsets.symmetric(horizontal: 16.0),
-        ),
-
-        trailing: [
-          IconButton(
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    "AI Search coming soon!",
-                  ),
-                ),
-              );
-            },
-            icon: const Icon(
-              Icons.auto_awesome,
-              color: Color(0xFF6A1B9A),
-            ),
-          ),
-        ],
-
-        onSubmitted: (value) {
-          performSearch();
+      body: GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onTap: () {
+          focusNode.unfocus();
         },
-      ),
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: isLandscape ? 8 : 16,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
 
-            const SizedBox(height: 16),
+              // Search Bar + AI Button
+              SearchBar(
+                controller: searchController,
+                focusNode: focusNode,
+                leading: const Icon(Icons.search),
+                hintText: "Search Books, eBooks...",
+                padding: const WidgetStatePropertyAll<EdgeInsets>(
+                  EdgeInsets.symmetric(horizontal: 16.0),
+                ),
+                trailing: [
+                  IconButton(
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text("AI Search coming soon!"),
+                        ),
+                      );
+                    },
+                    icon: const Icon(
+                      Icons.auto_awesome,
+                      color: Color(0xFF6A1B9A),
+                    ),
+                  ),
+                ],
+                onSubmitted: (value) {
+                  performSearch();
+                },
+              ),
 
-            // Filter Chips
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: List.generate(
-                  filters.length,
-                  (index) => Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: ChoiceChip(
-                      label: Text(filters[index]),
-                      selected: selectedFilter == index,
-                      onSelected: (value) {
-                        setState(() {
-                          selectedFilter = index;
-                        });
-                      },
+            if (!isLandscape || !keyboardIsOpen) ...[
+              SizedBox(height: isLandscape ? 8 : 16),
+
+              // Filter Chips
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: List.generate(
+                    filters.length,
+                    (index) => Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Text(filters[index]),
+                        selected: selectedFilter == index,
+                        onSelected: (value) {
+                          setState(() {
+                            selectedFilter = index;
+                          });
+                        },
+                      ),
                     ),
                   ),
                 ),
               ),
-            ),
+            ],
 
-            const SizedBox(height: 24),
+            SizedBox(height: (isLandscape && keyboardIsOpen) ? 4 : (isLandscape ? 12 : 24)),
 
-            const Text(
-              "Browse Books",
-              style: TextStyle(
-                fontSize: 22,
-                fontWeight: FontWeight.w600,
+            if (!isLandscape) ...[
+              const Text(
+                "Browse Books",
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-            ),
-
-            const SizedBox(height: 12),
+              const SizedBox(height: 12),
+            ],
 
             Expanded(
               child: Builder(
@@ -200,7 +229,10 @@ Future<void> performSearch() async {
                   }
 
                   if (currentState == SearchState.results) {
-                    return SearchResults(query: searchController.text.trim());
+                    return SearchResults(
+                      query: searchController.text.trim(),
+                      keyboardIsOpen: keyboardIsOpen,
+                    );
                   }
 
                   // initial state — nothing searched yet
@@ -216,6 +248,7 @@ Future<void> performSearch() async {
           ],
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 }
