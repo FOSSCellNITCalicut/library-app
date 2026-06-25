@@ -215,9 +215,15 @@ class _BusinessHoursSection extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  child: Text(
-                    e.schedule,
-                    style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: _splitSchedule(e.schedule).map((line) => Padding(
+                      padding: EdgeInsets.only(bottom: 2),
+                      child: Text(
+                        line,
+                        style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                      ),
+                    )).toList(),
                   ),
                 ),
               ],
@@ -228,6 +234,13 @@ class _BusinessHoursSection extends StatelessWidget {
       ),
     );
   }
+}
+
+List<String> _splitSchedule(String schedule) {
+  return schedule
+      .split(RegExp(r'(?<=\))\s*'))
+      .where((s) => s.isNotEmpty)
+      .toList();
 }
 
 class AboutImage extends StatelessWidget {
