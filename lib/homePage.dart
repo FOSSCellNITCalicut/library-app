@@ -4,11 +4,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:library_nitc/bookPage.dart';
 import 'package:library_nitc/bookSharingCornerPage.dart';
+import 'package:library_nitc/models/book_arrangement.dart';
 import 'package:library_nitc/models/book_summary.dart';
+import 'package:library_nitc/models/business_hours.dart';
+import 'package:library_nitc/models/daily_quote.dart';
+import 'package:library_nitc/models/new_arrival.dart';
 import 'package:library_nitc/notifPage.dart';
 import 'package:library_nitc/services/book_service.dart';
+import 'package:library_nitc/services/opac_home_service.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
-import 'package:library_nitc/browsePage.dart';
 import 'package:library_nitc/browsePage.dart';
 
 class HomePage extends StatefulWidget {
@@ -19,6 +23,36 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final _opacService = OpacHomeService();
+  OpacHomeData? _opacData;
+  bool _opacLoading = true;
+  String? _opacError;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOpacData();
+  }
+
+  Future<void> _fetchOpacData() async {
+    setState(() {
+      _opacLoading = true;
+      _opacError = null;
+    });
+    try {
+      final data = await _opacService.fetchHomeData();
+      setState(() {
+        _opacData = data;
+        _opacLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _opacError = e.toString();
+        _opacLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,6 +62,7 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(padding: const EdgeInsets.all(12.0), child: HomeHeader()),
+            _buildOpacSections(),
             Padding(padding: EdgeInsets.all(12.0), child: BookSharingCard()),
             Padding(padding: EdgeInsets.all(12), child: StatWidget()),
             Padding(
@@ -40,7 +75,7 @@ class _HomePageState extends State<HomePage> {
             ),
             Padding(
               padding: EdgeInsets.all(12),
-              child: SizedBox(height: 250, child: BrowseCatalog()),
+              child: SizedBox(height: 250, child: OpacNewArrivals(data: _opacData?.newArrivals ?? [], loading: _opacLoading)),
             ),
             Padding(
               padding: EdgeInsets.all(16),
@@ -54,6 +89,88 @@ class _HomePageState extends State<HomePage> {
               padding: EdgeInsets.all(12),
               child: SizedBox(height: 250, child: HorizontalBookScroll()),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOpacSections() {
+    if (_opacLoading) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Column(
+          children: [
+            _buildSkeletonCard(120),
+            SizedBox(height: 12),
+            _buildSkeletonCard(100),
+            SizedBox(height: 12),
+            _buildSkeletonCard(160),
+          ],
+        ),
+      );
+    }
+
+    if (_opacError != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Card(
+          color: Colors.purple.shade50,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(child: Text('Could not load library info', style: TextStyle(color: Colors.grey[700]))),
+                TextButton(
+                  onPressed: _fetchOpacData,
+                  child: Text('Retry', style: TextStyle(color: Colors.purple)),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final data = _opacData!;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (data.quote != null)
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: _QuoteCard(quote: data.quote!)),
+        if (data.bookArrangement.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: _BookArrangementCard(entries: data.bookArrangement),
+          ),
+        if (data.businessHours.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: _BusinessHoursCard(entries: data.businessHours),
+          ),
+        SizedBox(height: 8),
+      ],
+    );
+  }
+
+  Widget _buildSkeletonCard(double height) {
+    return Card(
+      color: Colors.purple.shade50,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        height: height,
+        width: double.infinity,
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(height: 14, width: 120, decoration: BoxDecoration(color: Colors.purple.shade100, borderRadius: BorderRadius.circular(4))),
+            SizedBox(height: 12),
+            Container(height: 12, width: double.infinity, decoration: BoxDecoration(color: Colors.purple.shade100, borderRadius: BorderRadius.circular(4))),
+            SizedBox(height: 8),
+            Container(height: 12, width: 180, decoration: BoxDecoration(color: Colors.purple.shade100, borderRadius: BorderRadius.circular(4))),
           ],
         ),
       ),
@@ -467,6 +584,266 @@ class _BookJournalToggleState extends State<BookJournalToggle> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _QuoteCard extends StatelessWidget {
+  final DailyQuote quote;
+  const _QuoteCard({required this.quote});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.purple.shade50,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 1,
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.format_quote, color: Colors.purple, size: 20),
+                SizedBox(width: 6),
+                Text(
+                  "Quote of the day",
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.purple.shade700,
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 10),
+            Text(
+              quote.text,
+              style: TextStyle(
+                fontSize: 15,
+                fontStyle: FontStyle.italic,
+                color: Colors.black87,
+                height: 1.4,
+              ),
+            ),
+            if (quote.source != null) ...[
+              SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerRight,
+                child: Text(
+                  "~ ${quote.source}",
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.purple.shade700,
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BookArrangementCard extends StatelessWidget {
+  final List<StackEntry> entries;
+  const _BookArrangementCard({required this.entries});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.purple.shade50,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 1,
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Book Arrangement",
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.purple.shade700,
+              ),
+            ),
+            SizedBox(height: 10),
+            ...entries.map(
+              (e) => Padding(
+                padding: EdgeInsets.only(bottom: 6),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.purple.shade100,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        e.stack,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: Colors.purple.shade900,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      e.callRange,
+                      style: TextStyle(fontSize: 13, color: Colors.black87),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _BusinessHoursCard extends StatelessWidget {
+  final List<HourEntry> entries;
+  const _BusinessHoursCard({required this.entries});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.purple.shade50,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 1,
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Library Business Hours",
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.purple.shade700,
+              ),
+            ),
+            SizedBox(height: 10),
+            ...entries.map(
+              (e) => Padding(
+                padding: EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: 130,
+                      child: Text(
+                        e.area,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 13,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: Text(
+                        e.schedule,
+                        style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class OpacNewArrivals extends StatelessWidget {
+  final List<NewArrival> data;
+  final bool loading;
+
+  const OpacNewArrivals({super.key, required this.data, required this.loading});
+
+  @override
+  Widget build(BuildContext context) {
+    if (loading) {
+      return ListView(
+        scrollDirection: Axis.horizontal,
+        children: List.generate(6, (_) => const SkeletonCard()),
+      );
+    }
+    if (data.isEmpty) {
+      return const Center(child: Text('No new arrivals'));
+    }
+    return ListView.builder(
+      padding: EdgeInsets.zero,
+      scrollDirection: Axis.horizontal,
+      itemCount: data.length,
+      itemBuilder: (context, index) {
+        final book = data[index];
+        return GestureDetector(
+          onTap: () => pushWithNavBar(
+            context,
+            MaterialPageRoute(builder: (_) => BookPage(biblioId: book.biblioId)),
+          ),
+          child: SizedBox(
+            width: 145,
+            child: Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              elevation: 0,
+              color: Theme.of(context).canvasColor,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                    child: book.coverUrl != null
+                        ? Image.network(
+                            book.coverUrl!,
+                            width: 145,
+                            height: 185,
+                            fit: BoxFit.fill,
+                            errorBuilder: (_, __, ___) => Image.asset(
+                              'assets/stats_book_temp.png',
+                              width: 145,
+                              height: 185,
+                              fit: BoxFit.fill,
+                            ),
+                          )
+                        : Image.asset(
+                            'assets/stats_book_temp.png',
+                            width: 145,
+                            height: 185,
+                            fit: BoxFit.fill,
+                          ),
+                  ),
+                  SizedBox(height: 4),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: Text(
+                      book.title,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

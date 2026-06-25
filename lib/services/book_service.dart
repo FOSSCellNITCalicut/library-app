@@ -2,7 +2,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:library_nitc/models/book_details.dart';
 
-const String kBaseUrl = 'http://192.168.1.44:8000';
+const String kBaseUrl = 'http://localhost:8000';
 
 class BookService {
   final String baseUrl;
