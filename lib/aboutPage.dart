@@ -205,6 +205,8 @@ class _AboutPageState extends State<AboutPage> {
             if (!_loading && _bookArrangement.isNotEmpty)
               _BookArrangementSection(entries: _bookArrangement),
 
+            _DDCReferenceTable(),
+
             SizedBox(height: 20),
           ],
         ),
@@ -421,6 +423,87 @@ class _StatCard extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _DDCReferenceTable extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    const rows = [
+      ('0xx', 'Computer Science, Information & General Works'),
+      ('1xx', 'Philosophy & Psychology'),
+      ('2xx', 'Religion'),
+      ('3xx', 'Social Sciences'),
+      ('4xx', 'Language'),
+      ('5xx', 'Science'),
+      ('6xx', 'Technology'),
+      ('7xx', 'Arts & Recreation'),
+      ('8xx', 'Literature'),
+      ('9xx', 'History & Geography'),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.deepPurple, size: 22),
+              SizedBox(width: 8),
+              Text(
+                "DDC Classification Reference",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.deepPurple,
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 12),
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.deepPurple.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.deepPurple.shade200),
+            ),
+            child: Column(
+              children: rows.map((r) => Container(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                decoration: BoxDecoration(
+                  border: r != rows.last
+                      ? Border(bottom: BorderSide(color: Colors.deepPurple.shade200))
+                      : null,
+                ),
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 40,
+                      child: Text(
+                        r.$1,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
+                          color: Colors.deepPurple.shade800,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        r.$2,
+                        style: TextStyle(fontSize: 14, color: Colors.black87),
+                      ),
+                    ),
+                  ],
+                ),
+              )).toList(),
+            ),
+          ),
+        ],
       ),
     );
   }
