@@ -593,49 +593,73 @@ class _QuoteCard extends StatelessWidget {
       color: Colors.purple.shade50,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 1,
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
-              children: [
-                Icon(Icons.format_quote, color: Colors.purple, size: 20),
-                SizedBox(width: 6),
-                Text(
-                  "Quote of the day",
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.purple.shade700,
-                  ),
+            Container(width: 5, color: Colors.purple.shade300),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(14, 16, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.format_quote, color: Colors.purple, size: 18),
+                        SizedBox(width: 6),
+                        Text(
+                          "Quote of the day",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.purple.shade400,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      "\u201C${quote.text}\u201D",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.black87,
+                        height: 1.5,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    if (quote.source != null) ...[
+                      SizedBox(height: 10),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 16,
+                              height: 1,
+                              color: Colors.purple.shade300,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              quote.source!,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.purple.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
-              ],
-            ),
-            SizedBox(height: 10),
-            Text(
-              quote.text,
-              style: TextStyle(
-                fontSize: 15,
-                fontStyle: FontStyle.italic,
-                color: Colors.black87,
-                height: 1.4,
               ),
             ),
-            if (quote.source != null) ...[
-              SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerRight,
-                child: Text(
-                  "~ ${quote.source}",
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.purple.shade700,
-                  ),
-                ),
-              ),
-            ],
           ],
         ),
       ),
