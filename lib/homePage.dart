@@ -707,25 +707,25 @@ class OpacNewArrivals extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
-                    child: book.coverUrl != null
-                        ? Image.network(
-                            book.coverUrl!,
-                            width: 145,
-                            height: 185,
-                            fit: BoxFit.fill,
-                            errorBuilder: (_, __, ___) => Image.asset(
-                              'assets/stats_book_temp.png',
+                    child: SizedBox(
+                      width: 145,
+                      height: 185,
+                      child: book.coverUrl != null
+                          ? Image.network(
+                              book.coverUrl!,
                               width: 145,
                               height: 185,
                               fit: BoxFit.fill,
+                              errorBuilder: (_, __, ___) => Image.asset(
+                                'assets/stats_book_temp.png',
+                                fit: BoxFit.fill,
+                              ),
+                            )
+                          : Image.asset(
+                              'assets/stats_book_temp.png',
+                              fit: BoxFit.fill,
                             ),
-                          )
-                        : Image.asset(
-                            'assets/stats_book_temp.png',
-                            width: 145,
-                            height: 185,
-                            fit: BoxFit.fill,
-                          ),
+                    ),
                   ),
                   SizedBox(height: 4),
                   Padding(
