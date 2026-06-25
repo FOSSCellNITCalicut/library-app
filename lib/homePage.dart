@@ -87,7 +87,7 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(12),
+              padding: EdgeInsets.only(top: 12, bottom: 12),
               child: SizedBox(height: 250, child: OpacNewArrivals(data: _opacData?.newArrivals ?? [], loading: _opacLoading)),
             ),
             if (loggedIn) ...[
@@ -107,7 +107,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Padding(
-                padding: EdgeInsets.all(12),
+                padding: EdgeInsets.only(top: 12, bottom: 12),
                 child: SizedBox(
                   height: 250,
                   child: HorizontalBookScroll(
