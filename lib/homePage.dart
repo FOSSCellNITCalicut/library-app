@@ -70,6 +70,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Scaffold(
+      backgroundColor: Colors.purple.shade50,
       body: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
