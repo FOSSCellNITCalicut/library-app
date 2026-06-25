@@ -4,11 +4,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:library_nitc/bookPage.dart';
 import 'package:library_nitc/bookSharingCornerPage.dart';
+import 'package:library_nitc/auth_provider.dart';
 import 'package:library_nitc/models/book_summary.dart';
+import 'package:library_nitc/models/daily_quote.dart';
+import 'package:library_nitc/models/new_arrival.dart';
 import 'package:library_nitc/notifPage.dart';
 import 'package:library_nitc/services/book_service.dart';
+import 'package:library_nitc/services/opac_home_service.dart';
+import 'package:library_nitc/user_provider.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
-import 'package:library_nitc/browsePage.dart';
+import 'package:provider/provider.dart';
 import 'package:library_nitc/browsePage.dart';
 
 class HomePage extends StatefulWidget {
@@ -19,17 +24,61 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final _opacService = OpacHomeService();
+  OpacHomeData? _opacData;
+  bool _opacLoading = true;
+  String? _opacError;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchOpacData();
+  }
+
+  Future<void> _fetchOpacData() async {
+    setState(() {
+      _opacLoading = true;
+      _opacError = null;
+    });
+    try {
+      final data = await _opacService.fetchHomeData();
+      setState(() {
+        _opacData = data;
+        _opacLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _opacError = e.toString();
+        _opacLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final userProvider = context.watch<UserProvider>();
+    final loggedIn = auth.isLoggedIn;
+
+    if (loggedIn && userProvider.profile == null && !userProvider.profileLoading) {
+      final token = auth.accessToken;
+      if (token != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.read<UserProvider>().fetchProfile(token);
+        });
+      }
+    }
+
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(padding: const EdgeInsets.all(12.0), child: HomeHeader()),
+            _buildTopOpacSections(),
             Padding(padding: EdgeInsets.all(12.0), child: BookSharingCard()),
-            Padding(padding: EdgeInsets.all(12), child: StatWidget()),
             Padding(
               padding: EdgeInsets.all(16),
               child: Text(
@@ -39,21 +88,108 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             Padding(
-              padding: EdgeInsets.all(12),
-              child: SizedBox(height: 250, child: BrowseCatalog()),
+              padding: EdgeInsets.only(top: 12, bottom: 12),
+              child: SizedBox(height: 250, child: OpacNewArrivals(data: _opacData?.newArrivals ?? [], loading: _opacLoading)),
             ),
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                "Your Items",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                textAlign: TextAlign.start,
+            if (loggedIn) ...[
+              Padding(
+                padding: EdgeInsets.all(12),
+                child: StatWidget(
+                  loanSummary: userProvider.profile?.loanSummary,
+                  checkedOutBooks: userProvider.profile?.checkedOutBooks,
+                ),
               ),
+              Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  "Your Items",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                  textAlign: TextAlign.start,
+                ),
+              ),
+              Padding(
+                padding: EdgeInsets.only(top: 12, bottom: 12),
+                child: SizedBox(
+                  height: 250,
+                  child: HorizontalBookScroll(
+                    checkedOutBooks: userProvider.profile?.checkedOutBooks,
+                  ),
+                ),
+              ),
+            ],
+
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTopOpacSections() {
+    if (_opacLoading) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Column(
+          children: [
+            _buildSkeletonCard(120),
+            SizedBox(height: 12),
+            _buildSkeletonCard(100),
+            SizedBox(height: 12),
+            _buildSkeletonCard(160),
+          ],
+        ),
+      );
+    }
+
+    if (_opacError != null) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        child: Card(
+          color: Colors.purple.shade50,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(child: Text('Could not load library info', style: TextStyle(color: Colors.grey[700]))),
+                TextButton(
+                  onPressed: _fetchOpacData,
+                  child: Text('Retry', style: TextStyle(color: Colors.purple)),
+                ),
+              ],
             ),
-            Padding(
-              padding: EdgeInsets.all(12),
-              child: SizedBox(height: 250, child: HorizontalBookScroll()),
-            ),
+          ),
+        ),
+      );
+    }
+
+    final data = _opacData!;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (data.quote != null)
+          Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: _QuoteCard(quote: data.quote!)),
+        SizedBox(height: 8),
+      ],
+    );
+  }
+
+  Widget _buildSkeletonCard(double height) {
+    return Card(
+      color: Colors.purple.shade50,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Container(
+        height: height,
+        width: double.infinity,
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(height: 14, width: 120, decoration: BoxDecoration(color: Colors.purple.shade100, borderRadius: BorderRadius.circular(4))),
+            SizedBox(height: 12),
+            Container(height: 12, width: double.infinity, decoration: BoxDecoration(color: Colors.purple.shade100, borderRadius: BorderRadius.circular(4))),
+            SizedBox(height: 8),
+            Container(height: 12, width: 180, decoration: BoxDecoration(color: Colors.purple.shade100, borderRadius: BorderRadius.circular(4))),
           ],
         ),
       ),
@@ -184,16 +320,19 @@ class MainSearchBar extends StatelessWidget {
   }
 }
 
-class StatWidget extends StatefulWidget {
-  const StatWidget({super.key});
+class StatWidget extends StatelessWidget {
+  final LoanSummary? loanSummary;
+  final List<CheckedOutBook>? checkedOutBooks;
 
-  @override
-  State<StatefulWidget> createState() => _StatWidgetState();
-}
+  const StatWidget({super.key, this.loanSummary, this.checkedOutBooks});
 
-class _StatWidgetState extends State<StatWidget> {
   @override
   Widget build(BuildContext context) {
+    final count = loanSummary?.loanCount ?? 0;
+    final limit = loanSummary?.loanLimit ?? 0;
+    final progress = limit > 0 ? count / limit : 0.0;
+    final firstBook = checkedOutBooks?.isNotEmpty == true ? checkedOutBooks!.first : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -212,42 +351,51 @@ class _StatWidgetState extends State<StatWidget> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "You have taken 3 out of 5 books",
+                "You have taken $count out of $limit books",
                 style: TextStyle(fontSize: 14),
-              ), // TODO : get from backend
+              ),
               SizedBox(height: 8),
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: LinearProgressIndicator(
-                  value: 0.6, // TODO : process value from backend
+                  value: progress,
                   minHeight: 8,
                   backgroundColor: Colors.purple.shade100,
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
                 ),
               ),
-
               SizedBox(height: 16),
               Text(
-                "You have to return",
+                firstBook != null ? "You have to return" : "No books checked out",
                 style: TextStyle(color: Colors.grey[700]),
               ),
-              SizedBox(height: 4),
-              Text(
-                "Book 1", // TODO : data from backend
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              SizedBox(height: 8),
-              Text("due date", style: TextStyle(color: Colors.grey.shade700)),
-              SizedBox(height: 12),
-              Align(
-                alignment: Alignment.bottomRight,
-                child: TextButton(
-                  onPressed: () {
-                    // TODO : implement renew
-                  },
-                  child: Text("Renew", style: TextStyle(color: Colors.purple)),
+              if (firstBook != null) ...[
+                SizedBox(height: 4),
+                Text(
+                  firstBook.title,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
-              ),
+                SizedBox(height: 8),
+                Text(
+                  firstBook.dueDate,
+                  style: TextStyle(color: Colors.grey.shade700),
+                ),
+                SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: TextButton(
+                    onPressed: () {
+                      pushWithNavBar(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BookPage(biblioId: firstBook.biblioId),
+                        ),
+                      );
+                    },
+                    child: Text("View", style: TextStyle(color: Colors.purple)),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -329,49 +477,79 @@ class BookSearchDelegate extends SearchDelegate<String> {
 }
 
 class HorizontalBookScroll extends StatelessWidget {
-  const HorizontalBookScroll({
-    super.key,
-  }); // TODO : add argument to take data from backend
+  final List<CheckedOutBook>? checkedOutBooks;
+
+  const HorizontalBookScroll({super.key, this.checkedOutBooks});
 
   @override
   Widget build(BuildContext context) {
+    final books = checkedOutBooks ?? [];
+
+    if (books.isEmpty) {
+      return Center(
+        child: Text(
+          "No items checked out",
+          style: TextStyle(color: Colors.grey[500], fontSize: 14),
+        ),
+      );
+    }
+
     return ListView.builder(
-      // TODO : rewrite function to use backend data
       padding: EdgeInsets.zero,
       scrollDirection: Axis.horizontal,
-      itemCount: 7,
+      itemCount: books.length,
       itemBuilder: (BuildContext context, int index) {
-        return SizedBox(
-          height: 120, // idk what changes this height value does
-          child: Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            elevation: 0,
-            color: Theme.of(context).canvasColor,
-            child: Container(
-              width: 145,
-              padding: EdgeInsets.zero,
-
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: Image.asset(
-                      "assets/stats_book_temp.png",
-                      width: 145,
-                      height: 201,
-                      fit: BoxFit.fill,
+        final book = books[index];
+        return GestureDetector(
+          onTap: () {
+            pushWithNavBar(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BookPage(biblioId: book.biblioId),
+              ),
+            );
+          },
+          child: SizedBox(
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 0,
+              color: Theme.of(context).canvasColor,
+              child: Container(
+                width: 145,
+                padding: EdgeInsets.zero,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: Image.asset(
+                        "assets/stats_book_temp.png",
+                        width: 145,
+                        height: 160,
+                        fit: BoxFit.fill,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "Book $index",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                  ),
-                ],
+                    SizedBox(height: 8),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 6),
+                      child: Text(
+                        book.title,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      book.dueDate,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -467,6 +645,172 @@ class _BookJournalToggleState extends State<BookJournalToggle> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _QuoteCard extends StatelessWidget {
+  final DailyQuote quote;
+  const _QuoteCard({required this.quote});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      color: Colors.purple.shade50,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 1,
+      clipBehavior: Clip.antiAlias,
+      child: IntrinsicHeight(
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(width: 5, color: Colors.purple.shade300),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.fromLTRB(14, 16, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.format_quote, color: Colors.purple, size: 18),
+                        SizedBox(width: 6),
+                        Text(
+                          "Quote of the day",
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.purple.shade400,
+                            letterSpacing: 0.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      "\u201C${quote.text}\u201D",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontStyle: FontStyle.italic,
+                        color: Colors.black87,
+                        height: 1.5,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                    if (quote.source != null) ...[
+                      SizedBox(height: 10),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 16,
+                              height: 1,
+                              color: Colors.purple.shade300,
+                            ),
+                            SizedBox(width: 8),
+                            Text(
+                              quote.source!,
+                              style: TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: Colors.purple.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class OpacNewArrivals extends StatelessWidget {
+  final List<NewArrival> data;
+  final bool loading;
+
+  const OpacNewArrivals({super.key, required this.data, required this.loading});
+
+  @override
+  Widget build(BuildContext context) {
+    if (loading) {
+      return ListView(
+        scrollDirection: Axis.horizontal,
+        children: List.generate(6, (_) => const SkeletonCard()),
+      );
+    }
+    if (data.isEmpty) {
+      return const Center(child: Text('No new arrivals'));
+    }
+    return ListView.builder(
+      padding: EdgeInsets.zero,
+      scrollDirection: Axis.horizontal,
+      itemCount: data.length,
+      itemBuilder: (context, index) {
+        final book = data[index];
+        return GestureDetector(
+          onTap: () => pushWithNavBar(
+            context,
+            MaterialPageRoute(builder: (_) => BookPage(biblioId: book.biblioId)),
+          ),
+          child: SizedBox(
+            width: 145,
+            child: Card(
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              elevation: 0,
+              color: Theme.of(context).canvasColor,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(15),
+                    child: SizedBox(
+                      width: 145,
+                      height: 185,
+                      child: book.coverUrl != null
+                          ? Image.network(
+                              book.coverUrl!,
+                              width: 145,
+                              height: 185,
+                              fit: BoxFit.fill,
+                              errorBuilder: (_, __, ___) => Image.asset(
+                                'assets/stats_book_temp.png',
+                                fit: BoxFit.fill,
+                              ),
+                            )
+                          : Image.asset(
+                              'assets/stats_book_temp.png',
+                              fit: BoxFit.fill,
+                            ),
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 6),
+                    child: Text(
+                      book.title,
+                      textAlign: TextAlign.center,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontWeight: FontWeight.w500, fontSize: 12),
+                    ),
+                  ),
+                  SizedBox(height: 4),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 }

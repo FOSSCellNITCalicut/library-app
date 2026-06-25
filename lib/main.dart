@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:library_nitc/aboutPage.dart';
 import 'package:library_nitc/chatBotPage.dart';
@@ -18,6 +19,12 @@ import 'user_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  SystemChrome.setSystemUIOverlayStyle(
+    SystemUiOverlayStyle(
+      statusBarColor: Colors.purple.shade50,
+      statusBarIconBrightness: Brightness.dark,
+    ),
+  );
   await findSystemLocale();
   await initializeMessages('en');
   await initializeDateFormatting('en', null);
