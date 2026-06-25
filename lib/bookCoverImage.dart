@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
 class BookCoverImage extends StatefulWidget {
+  final Object? isbn;
   final String? coverUrl;
-  final List<String> isbn;
   final double? width;
   final double? height;
   final BoxFit fit;
@@ -22,155 +21,152 @@ class BookCoverImage extends StatefulWidget {
 }
 
 class _BookCoverImageState extends State<BookCoverImage> {
-  static final Map<String, String?> _coverCache = {};
+  static const int _maxRetriesPerCandidate = 1;
+  static const Duration _retryDelay = Duration(milliseconds: 350);
 
-  String? _resolvedUrl;
-  bool _isLoading = true;
+  List<String> _candidates = const [];
+  int _candidateIndex = 0;
+  int _retryAttempt = 0;
+  bool _advanceScheduled = false;
+  bool _exhausted = false;
 
   @override
   void initState() {
     super.initState();
-    _initResolution();
+    _refreshCandidates(initialLoad: true);
   }
 
   @override
   void didUpdateWidget(covariant BookCoverImage oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.coverUrl != widget.coverUrl ||
-        !_isListEqual(oldWidget.isbn, widget.isbn)) {
-      _initResolution();
+        !_sameIsbnValue(oldWidget.isbn, widget.isbn)) {
+      _refreshCandidates();
     }
   }
 
-  bool _isListEqual(List<String> a, List<String> b) {
-    if (a.length != b.length) return false;
-    for (int i = 0; i < a.length; i++) {
-      if (a[i] != b[i]) return false;
+  bool _sameIsbnValue(Object? a, Object? b) {
+    final left = _normalizeIsbnInput(a);
+    final right = _normalizeIsbnInput(b);
+    if (left.length != right.length) {
+      return false;
+    }
+    for (var i = 0; i < left.length; i++) {
+      if (left[i] != right[i]) {
+        return false;
+      }
     }
     return true;
   }
 
-  String _getCacheKey(String? coverUrl, List<String> isbns) {
-    return '${coverUrl ?? ''}_${isbns.join(',')}';
-  }
+  void _refreshCandidates({bool initialLoad = false}) {
+    final candidates = _buildOpenLibraryCoverCandidates(
+      widget.coverUrl,
+      _normalizeIsbnInput(widget.isbn),
+    );
 
-  void _initResolution() {
-    final key = _getCacheKey(widget.coverUrl, widget.isbn);
-    if (_coverCache.containsKey(key)) {
-      setState(() {
-        _resolvedUrl = _coverCache[key];
-        _isLoading = false;
-      });
-    } else {
-      setState(() {
-        _isLoading = true;
-        _resolvedUrl = null;
-      });
-      _resolveCover();
-    }
-  }
-
-  Future<void> _resolveCover() async {
-    final key = _getCacheKey(widget.coverUrl, widget.isbn);
-
-    // Build candidate list in order of priority
-    final candidates = <String>[];
-    if (widget.coverUrl != null && widget.coverUrl!.trim().isNotEmpty) {
-      candidates.add(widget.coverUrl!.trim());
-    }
-
-    final validIsbns = widget.isbn
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-
-    for (final cleanIsbn in validIsbns) {
-      candidates.add('https://covers.openlibrary.org/b/isbn/$cleanIsbn-M.jpg?default=false');
-    }
-
-    if (candidates.isEmpty) {
-      _coverCache[key] = null;
-      if (mounted) {
-        setState(() {
-          _resolvedUrl = null;
-          _isLoading = false;
-        });
-      }
+    if (initialLoad) {
+      _candidates = candidates;
+      _candidateIndex = 0;
+      _retryAttempt = 0;
+      _advanceScheduled = false;
+      _exhausted = candidates.isEmpty;
       return;
     }
 
-    // Run parallel HEAD requests for all candidate URLs
-    final futures = <Future<_CheckResult>>[];
-    for (int i = 0; i < candidates.length; i++) {
-      futures.add(_checkUrl(candidates[i], i));
-    }
-
-    final results = await Future.wait(futures);
-    results.sort((a, b) => a.index.compareTo(b.index));
-
-    String? bestUrl;
-    for (final res in results) {
-      if (res.isValid) {
-        bestUrl = res.url;
-        break;
-      }
-    }
-
-    _coverCache[key] = bestUrl;
-
-    if (mounted) {
-      setState(() {
-        _resolvedUrl = bestUrl;
-        _isLoading = false;
-      });
-    }
-  }
-
-  Future<_CheckResult> _checkUrl(String url, int index) async {
-    try {
-      final uri = Uri.parse(url);
-      final response = await http.head(uri).timeout(const Duration(seconds: 3));
-      
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        return _CheckResult(index: index, isValid: true, url: url);
-      }
-      
-      // Fallback to GET only if method is not allowed or supported
-      if (response.statusCode == 405 || response.statusCode == 501) {
-        final getResponse = await http.get(uri).timeout(const Duration(seconds: 3));
-        if (getResponse.statusCode >= 200 && getResponse.statusCode < 300) {
-          return _CheckResult(index: index, isValid: true, url: url);
-        }
-      }
-      
-      return _CheckResult(index: index, isValid: false, url: url);
-    } catch (_) {
-      return _CheckResult(index: index, isValid: false, url: url);
-    }
+    setState(() {
+      _candidates = candidates;
+      _candidateIndex = 0;
+      _retryAttempt = 0;
+      _advanceScheduled = false;
+      _exhausted = candidates.isEmpty;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return ShimmerWidget(
-        width: widget.width ?? 120,
-        height: widget.height ?? 180,
-      );
+    if (_exhausted || _candidates.isEmpty) {
+      return _buildPlaceholder();
     }
 
-    if (_resolvedUrl != null) {
-      return Image.network(
-        _resolvedUrl!,
-        width: widget.width,
-        height: widget.height,
-        fit: widget.fit,
-        errorBuilder: (context, error, stackTrace) {
-          return _buildPlaceholder();
-        },
-      );
+    final currentUrl = _urlForCurrentAttempt(_candidates[_candidateIndex]);
+    final coverWidth = widget.width ?? 120;
+    final coverHeight = widget.height ?? 180;
+
+    return Image.network(
+      currentUrl,
+      key: ValueKey(currentUrl),
+      width: coverWidth,
+      height: coverHeight,
+      fit: widget.fit,
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        if (wasSynchronouslyLoaded || frame != null) {
+          return child;
+        }
+
+        return _loadingFallback();
+      },
+      errorBuilder: (context, error, stackTrace) {
+        _handleLoadError();
+        return _loadingFallback();
+      },
+    );
+  }
+
+  String _urlForCurrentAttempt(String url) {
+    if (_retryAttempt == 0) {
+      return url;
     }
 
-    return _buildPlaceholder();
+    final uri = Uri.tryParse(url);
+    if (uri == null || !uri.hasScheme) {
+      return url;
+    }
+
+    return uri
+        .replace(
+          queryParameters: {
+            ...uri.queryParameters,
+            'cover_retry': '$_retryAttempt',
+          },
+        )
+        .toString();
+  }
+
+  void _handleLoadError() {
+    if (_advanceScheduled || !mounted) {
+      return;
+    }
+
+    _advanceScheduled = true;
+    final delay = _retryAttempt < _maxRetriesPerCandidate
+        ? _retryDelay
+        : Duration.zero;
+
+    Future.delayed(delay, () {
+      _advanceScheduled = false;
+      if (!mounted) {
+        return;
+      }
+
+      setState(() {
+        if (_retryAttempt < _maxRetriesPerCandidate) {
+          _retryAttempt += 1;
+        } else if (_candidateIndex + 1 >= _candidates.length) {
+          _exhausted = true;
+        } else {
+          _candidateIndex += 1;
+          _retryAttempt = 0;
+        }
+      });
+    });
+  }
+
+  Widget _loadingFallback() {
+    return ShimmerWidget(
+      width: widget.width ?? 120,
+      height: widget.height ?? 180,
+    );
   }
 
   Widget _buildPlaceholder() {
@@ -183,12 +179,167 @@ class _BookCoverImageState extends State<BookCoverImage> {
   }
 }
 
-class _CheckResult {
-  final int index;
-  final bool isValid;
-  final String url;
+List<String> _normalizeIsbnInput(Object? value) {
+  final results = <String>[];
 
-  _CheckResult({required this.index, required this.isValid, required this.url});
+  void addRaw(String raw) {
+    final normalized = _normalizeIsbn(raw);
+    if (normalized == null || results.contains(normalized)) {
+      return;
+    }
+
+    results.add(normalized);
+
+    final isbn13 = _isbn10To13(normalized);
+    if (isbn13 != null && !results.contains(isbn13)) {
+      results.add(isbn13);
+    }
+
+    final isbn10 = _isbn13To10(normalized);
+    if (isbn10 != null && !results.contains(isbn10)) {
+      results.add(isbn10);
+    }
+  }
+
+  if (value is String) {
+    addRaw(value);
+  } else if (value is Iterable) {
+    for (final item in value) {
+      if (item is String) {
+        addRaw(item);
+      }
+    }
+  }
+
+  return results;
+}
+
+List<String> _buildOpenLibraryCoverCandidates(
+  String? coverUrl,
+  List<String> isbns,
+) {
+  final candidates = <String>[];
+
+  void addCandidate(String url) {
+    final trimmed = url.trim();
+    if (trimmed.isEmpty || candidates.contains(trimmed)) {
+      return;
+    }
+    candidates.add(trimmed);
+  }
+
+  if (coverUrl != null) {
+    addCandidate(coverUrl);
+  }
+
+  for (final rawIsbn in isbns) {
+    final normalized = _normalizeIsbn(rawIsbn);
+    if (normalized == null) {
+      continue;
+    }
+
+    for (final isbn in _isbnVariants(normalized)) {
+      addCandidate(
+        'https://covers.openlibrary.org/b/isbn/$isbn-M.jpg?default=false',
+      );
+    }
+  }
+
+  return candidates;
+}
+
+String? _normalizeIsbn(String value) {
+  final cleaned = value.replaceAll(RegExp(r'[^0-9Xx]'), '').toUpperCase();
+  if (cleaned.isEmpty) {
+    return null;
+  }
+
+  if (_isValidIsbn10(cleaned) || _isValidIsbn13(cleaned)) {
+    return cleaned;
+  }
+
+  return null;
+}
+
+Iterable<String> _isbnVariants(String isbn) sync* {
+  yield isbn;
+
+  final isbn13 = _isbn10To13(isbn);
+  if (isbn13 != null) {
+    yield isbn13;
+  }
+
+  final isbn10 = _isbn13To10(isbn);
+  if (isbn10 != null) {
+    yield isbn10;
+  }
+}
+
+bool _isValidIsbn10(String isbn) {
+  if (!RegExp(r'^\d{9}[\dX]$').hasMatch(isbn)) {
+    return false;
+  }
+
+  var sum = 0;
+  for (var i = 0; i < 9; i++) {
+    sum += (i + 1) * (isbn.codeUnitAt(i) - 0x30);
+  }
+
+  final check = isbn[9] == 'X' ? 10 : isbn.codeUnitAt(9) - 0x30;
+  sum += 10 * check;
+  return sum % 11 == 0;
+}
+
+bool _isValidIsbn13(String isbn) {
+  if (!RegExp(r'^\d{13}$').hasMatch(isbn)) {
+    return false;
+  }
+
+  var sum = 0;
+  for (var i = 0; i < 12; i++) {
+    final digit = isbn.codeUnitAt(i) - 0x30;
+    sum += i.isEven ? digit : digit * 3;
+  }
+
+  final check = (10 - (sum % 10)) % 10;
+  return check == (isbn.codeUnitAt(12) - 0x30);
+}
+
+String? _isbn10To13(String isbn) {
+  if (!_isValidIsbn10(isbn)) {
+    return null;
+  }
+
+  final core = '978${isbn.substring(0, 9)}';
+  var sum = 0;
+  for (var i = 0; i < core.length; i++) {
+    final digit = core.codeUnitAt(i) - 0x30;
+    sum += i.isEven ? digit : digit * 3;
+  }
+
+  final check = (10 - (sum % 10)) % 10;
+  return '$core$check';
+}
+
+String? _isbn13To10(String isbn) {
+  if (!_isValidIsbn13(isbn) || !isbn.startsWith('978')) {
+    return null;
+  }
+
+  final core = isbn.substring(3, 12);
+  var sum = 0;
+  for (var i = 0; i < 9; i++) {
+    sum += (10 - i) * (core.codeUnitAt(i) - 0x30);
+  }
+
+  final remainder = 11 - (sum % 11);
+  final check = switch (remainder) {
+    10 => 'X',
+    11 => '0',
+    _ => remainder.toString(),
+  };
+
+  return '$core$check';
 }
 
 class ShimmerWidget extends StatefulWidget {
@@ -201,7 +352,8 @@ class ShimmerWidget extends StatefulWidget {
   State<ShimmerWidget> createState() => _ShimmerWidgetState();
 }
 
-class _ShimmerWidgetState extends State<ShimmerWidget> with SingleTickerProviderStateMixin {
+class _ShimmerWidgetState extends State<ShimmerWidget>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -230,11 +382,7 @@ class _ShimmerWidgetState extends State<ShimmerWidget> with SingleTickerProvider
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             gradient: LinearGradient(
-              colors: [
-                Colors.grey[300]!,
-                Colors.grey[100]!,
-                Colors.grey[300]!,
-              ],
+              colors: [Colors.grey[300]!, Colors.grey[100]!, Colors.grey[300]!],
               stops: const [0.1, 0.5, 0.9],
               begin: Alignment(-1.0 + _controller.value * 2, -0.3),
               end: Alignment(1.0 + _controller.value * 2, 0.3),
