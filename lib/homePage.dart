@@ -526,7 +526,7 @@ class HorizontalBookScroll extends StatelessWidget {
                       child: Image.asset(
                         "assets/stats_book_temp.png",
                         width: 145,
-                        height: 201,
+                        height: 160,
                         fit: BoxFit.fill,
                       ),
                     ),
