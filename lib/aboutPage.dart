@@ -69,6 +69,14 @@ class _AboutPageState extends State<AboutPage> {
                   style:
                       TextStyle(fontSize: 40, fontWeight: FontWeight.w700)),
             ),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Text(
+                "Since 1961, the Central Library at NIT Calicut has been a cornerstone of academic excellence — housing over 1.35 lakh books and serving a community of 8,000+ users.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.black87, height: 1.5),
+              ),
+            ),
             AboutImage(id: 1),
             Padding(
               padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
@@ -82,6 +90,14 @@ class _AboutPageState extends State<AboutPage> {
               ),
             ),
             AboutImage(id: 2),
+            Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 4),
+              child: Text(
+                "Fully automated with a modern digital infrastructure:",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+              ),
+            ),
             Padding(
               padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
               child: Row(
