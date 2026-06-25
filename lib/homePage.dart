@@ -706,7 +706,7 @@ class OpacNewArrivals extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ClipRRect(
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
+                    borderRadius: BorderRadius.circular(15),
                     child: SizedBox(
                       width: 145,
                       height: 185,
