@@ -6,6 +6,69 @@ import 'package:library_nitc/services/opac_home_service.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+int _dayIndex(String abbr) {
+  const map = {'sun': 7, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6};
+  return map[abbr.toLowerCase().substring(0, 3)] ?? 0;
+}
+
+bool _inDayRange(int now, int start, int end) {
+  if (start <= end) return now >= start && now <= end;
+  return now >= start || now <= end;
+}
+
+int _parseTime(String s) {
+  s = s.trim();
+  if (s.contains('Midnight')) return 24 * 60;
+  if (s.contains('Noon')) return 12 * 60;
+  final isPM = s.contains('PM');
+  final isAM = s.contains('AM');
+  final digits = s.replaceAll(RegExp(r'(AM|PM)'), '').trim();
+  int h = int.tryParse(digits) ?? 0;
+  if (isPM && h != 12) h += 12;
+  if (isAM && h == 12) h = 0;
+  return h * 60;
+}
+
+bool _isOpenNow(List<HourEntry> entries) {
+  final now = DateTime.now().toUtc().add(const Duration(hours: 5, minutes: 30));
+  final wd = now.weekday;
+
+  for (final e in entries) {
+    for (final part in _splitSchedule(e.schedule)) {
+      final d = RegExp(r'\((\w+)-(\w+)\)').firstMatch(part);
+      final t = RegExp(r'(\S+)-(\S+)').firstMatch(part);
+      if (d == null || t == null) continue;
+      final sd = _dayIndex(d.group(1)!);
+      final ed = _dayIndex(d.group(2)!);
+      if (!_inDayRange(wd, sd, ed)) continue;
+      final st = _parseTime(t.group(1)!);
+      final et = _parseTime(t.group(2)!);
+      final cur = now.hour * 60 + now.minute;
+      if (cur >= st && cur < et) return true;
+    }
+  }
+  return false;
+}
+
+String _subjectLabel(String callRange) {
+  const labels = [
+    'Computer Science, Information & General Works',
+    'Philosophy & Psychology',
+    'Religion',
+    'Social Sciences',
+    'Language',
+    'Science',
+    'Technology',
+    'Arts & Recreation',
+    'Literature',
+    'History & Geography',
+  ];
+  final start = callRange.split('-').first.trim();
+  final h = int.tryParse(start.isNotEmpty ? start[0] : '') ?? 0;
+  if (h >= 0 && h < labels.length) return labels[h];
+  return '';
+}
+
 class AboutPage extends StatefulWidget {
   @override
   State<AboutPage> createState() => _AboutPageState();
@@ -77,6 +140,26 @@ class _AboutPageState extends State<AboutPage> {
                 style: TextStyle(fontSize: 14, color: Colors.black87, height: 1.5),
               ),
             ),
+            if (_loading)
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Card(
+                  elevation: 0,
+                  color: Colors.deepPurple.shade50,
+                  child: Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Row(
+                      children: [
+                        Container(width: 22, height: 22, decoration: BoxDecoration(color: Colors.deepPurple.shade200, borderRadius: BorderRadius.circular(4))),
+                        SizedBox(width: 12),
+                        Container(height: 14, width: 160, decoration: BoxDecoration(color: Colors.deepPurple.shade200, borderRadius: BorderRadius.circular(4))),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            if (!_loading && _businessHours.isNotEmpty)
+              _BusinessHoursSection(entries: _businessHours),
             AboutImage(id: 1),
             Padding(
               padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
@@ -119,12 +202,8 @@ class _AboutPageState extends State<AboutPage> {
             ),
             AboutImage(id: 3),
 
-            if (!_loading) ...[
-              if (_bookArrangement.isNotEmpty)
-                _BookArrangementSection(entries: _bookArrangement),
-              if (_businessHours.isNotEmpty)
-                _BusinessHoursSection(entries: _businessHours),
-            ],
+            if (!_loading && _bookArrangement.isNotEmpty)
+              _BookArrangementSection(entries: _bookArrangement),
 
             SizedBox(height: 20),
           ],
@@ -161,7 +240,7 @@ class _BookArrangementSection extends StatelessWidget {
           ),
           SizedBox(height: 12),
           ...entries.map((e) => Padding(
-            padding: EdgeInsets.only(bottom: 8),
+            padding: EdgeInsets.only(bottom: 10),
             child: Row(
               children: [
                 Container(
@@ -181,9 +260,21 @@ class _BookArrangementSection extends StatelessWidget {
                   ),
                 ),
                 SizedBox(width: 12),
-                Text(
-                  e.callRange,
-                  style: TextStyle(fontSize: 16, color: Colors.black87),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        e.callRange,
+                        style: TextStyle(fontSize: 16, color: Colors.black87),
+                      ),
+                      if (_subjectLabel(e.callRange).isNotEmpty)
+                        Text(
+                          _subjectLabel(e.callRange),
+                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        ),
+                    ],
+                  ),
                 ),
               ],
             ),
@@ -200,6 +291,7 @@ class _BusinessHoursSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final open = _isOpenNow(entries);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
@@ -215,6 +307,34 @@ class _BusinessHoursSection extends StatelessWidget {
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
                   color: Colors.deepPurple,
+                ),
+              ),
+              SizedBox(width: 12),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: open ? Colors.green.shade50 : Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: open ? Colors.green : Colors.red, width: 1.5),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      open ? Icons.check_circle : Icons.cancel,
+                      size: 14,
+                      color: open ? Colors.green : Colors.red,
+                    ),
+                    SizedBox(width: 4),
+                    Text(
+                      open ? "Open Now" : "Closed",
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: open ? Colors.green.shade800 : Colors.red.shade800,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
