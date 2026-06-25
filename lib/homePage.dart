@@ -11,6 +11,7 @@ import 'package:library_nitc/models/new_arrival.dart';
 import 'package:library_nitc/notifPage.dart';
 import 'package:library_nitc/services/book_service.dart';
 import 'package:library_nitc/services/opac_home_service.dart';
+import 'package:library_nitc/user_provider.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:provider/provider.dart';
 import 'package:library_nitc/browsePage.dart';
@@ -56,7 +57,18 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final auth = context.watch<AuthProvider>();
+    final userProvider = context.watch<UserProvider>();
     final loggedIn = auth.isLoggedIn;
+
+    if (loggedIn && userProvider.profile == null && !userProvider.profileLoading) {
+      final token = auth.accessToken;
+      if (token != null) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          context.read<UserProvider>().fetchProfile(token);
+        });
+      }
+    }
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -79,7 +91,13 @@ class _HomePageState extends State<HomePage> {
               child: SizedBox(height: 250, child: OpacNewArrivals(data: _opacData?.newArrivals ?? [], loading: _opacLoading)),
             ),
             if (loggedIn) ...[
-              Padding(padding: EdgeInsets.all(12), child: StatWidget()),
+              Padding(
+                padding: EdgeInsets.all(12),
+                child: StatWidget(
+                  loanSummary: userProvider.profile?.loanSummary,
+                  checkedOutBooks: userProvider.profile?.checkedOutBooks,
+                ),
+              ),
               Padding(
                 padding: EdgeInsets.all(16),
                 child: Text(
@@ -90,7 +108,12 @@ class _HomePageState extends State<HomePage> {
               ),
               Padding(
                 padding: EdgeInsets.all(12),
-                child: SizedBox(height: 250, child: HorizontalBookScroll()),
+                child: SizedBox(
+                  height: 250,
+                  child: HorizontalBookScroll(
+                    checkedOutBooks: userProvider.profile?.checkedOutBooks,
+                  ),
+                ),
               ),
             ],
 
@@ -296,16 +319,19 @@ class MainSearchBar extends StatelessWidget {
   }
 }
 
-class StatWidget extends StatefulWidget {
-  const StatWidget({super.key});
+class StatWidget extends StatelessWidget {
+  final LoanSummary? loanSummary;
+  final List<CheckedOutBook>? checkedOutBooks;
 
-  @override
-  State<StatefulWidget> createState() => _StatWidgetState();
-}
+  const StatWidget({super.key, this.loanSummary, this.checkedOutBooks});
 
-class _StatWidgetState extends State<StatWidget> {
   @override
   Widget build(BuildContext context) {
+    final count = loanSummary?.loanCount ?? 0;
+    final limit = loanSummary?.loanLimit ?? 0;
+    final progress = limit > 0 ? count / limit : 0.0;
+    final firstBook = checkedOutBooks?.isNotEmpty == true ? checkedOutBooks!.first : null;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -324,42 +350,51 @@ class _StatWidgetState extends State<StatWidget> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                "You have taken 3 out of 5 books",
+                "You have taken $count out of $limit books",
                 style: TextStyle(fontSize: 14),
-              ), // TODO : get from backend
+              ),
               SizedBox(height: 8),
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
                 child: LinearProgressIndicator(
-                  value: 0.6, // TODO : process value from backend
+                  value: progress,
                   minHeight: 8,
                   backgroundColor: Colors.purple.shade100,
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
                 ),
               ),
-
               SizedBox(height: 16),
               Text(
-                "You have to return",
+                firstBook != null ? "You have to return" : "No books checked out",
                 style: TextStyle(color: Colors.grey[700]),
               ),
-              SizedBox(height: 4),
-              Text(
-                "Book 1", // TODO : data from backend
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
-              SizedBox(height: 8),
-              Text("due date", style: TextStyle(color: Colors.grey.shade700)),
-              SizedBox(height: 12),
-              Align(
-                alignment: Alignment.bottomRight,
-                child: TextButton(
-                  onPressed: () {
-                    // TODO : implement renew
-                  },
-                  child: Text("Renew", style: TextStyle(color: Colors.purple)),
+              if (firstBook != null) ...[
+                SizedBox(height: 4),
+                Text(
+                  firstBook.title,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
-              ),
+                SizedBox(height: 8),
+                Text(
+                  firstBook.dueDate,
+                  style: TextStyle(color: Colors.grey.shade700),
+                ),
+                SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.bottomRight,
+                  child: TextButton(
+                    onPressed: () {
+                      pushWithNavBar(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BookPage(biblioId: firstBook.biblioId),
+                        ),
+                      );
+                    },
+                    child: Text("View", style: TextStyle(color: Colors.purple)),
+                  ),
+                ),
+              ],
             ],
           ),
         ),
@@ -441,49 +476,79 @@ class BookSearchDelegate extends SearchDelegate<String> {
 }
 
 class HorizontalBookScroll extends StatelessWidget {
-  const HorizontalBookScroll({
-    super.key,
-  }); // TODO : add argument to take data from backend
+  final List<CheckedOutBook>? checkedOutBooks;
+
+  const HorizontalBookScroll({super.key, this.checkedOutBooks});
 
   @override
   Widget build(BuildContext context) {
+    final books = checkedOutBooks ?? [];
+
+    if (books.isEmpty) {
+      return Center(
+        child: Text(
+          "No items checked out",
+          style: TextStyle(color: Colors.grey[500], fontSize: 14),
+        ),
+      );
+    }
+
     return ListView.builder(
-      // TODO : rewrite function to use backend data
       padding: EdgeInsets.zero,
       scrollDirection: Axis.horizontal,
-      itemCount: 7,
+      itemCount: books.length,
       itemBuilder: (BuildContext context, int index) {
-        return SizedBox(
-          height: 120, // idk what changes this height value does
-          child: Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            elevation: 0,
-            color: Theme.of(context).canvasColor,
-            child: Container(
-              width: 145,
-              padding: EdgeInsets.zero,
-
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(15),
-                    child: Image.asset(
-                      "assets/stats_book_temp.png",
-                      width: 145,
-                      height: 201,
-                      fit: BoxFit.fill,
+        final book = books[index];
+        return GestureDetector(
+          onTap: () {
+            pushWithNavBar(
+              context,
+              MaterialPageRoute(
+                builder: (_) => BookPage(biblioId: book.biblioId),
+              ),
+            );
+          },
+          child: SizedBox(
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
+              elevation: 0,
+              color: Theme.of(context).canvasColor,
+              child: Container(
+                width: 145,
+                padding: EdgeInsets.zero,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(15),
+                      child: Image.asset(
+                        "assets/stats_book_temp.png",
+                        width: 145,
+                        height: 201,
+                        fit: BoxFit.fill,
+                      ),
                     ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    "Book $index",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                  ),
-                ],
+                    SizedBox(height: 8),
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 6),
+                      child: Text(
+                        book.title,
+                        textAlign: TextAlign.center,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+                      ),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      book.dueDate,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
