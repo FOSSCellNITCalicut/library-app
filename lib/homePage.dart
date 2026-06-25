@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:library_nitc/bookPage.dart';
 import 'package:library_nitc/bookSharingCornerPage.dart';
+import 'package:library_nitc/auth_provider.dart';
 import 'package:library_nitc/models/book_arrangement.dart';
 import 'package:library_nitc/models/book_summary.dart';
 import 'package:library_nitc/models/business_hours.dart';
@@ -13,6 +14,7 @@ import 'package:library_nitc/notifPage.dart';
 import 'package:library_nitc/services/book_service.dart';
 import 'package:library_nitc/services/opac_home_service.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
+import 'package:provider/provider.dart';
 import 'package:library_nitc/browsePage.dart';
 
 class HomePage extends StatefulWidget {
@@ -55,6 +57,8 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = context.watch<AuthProvider>();
+    final loggedIn = auth.isLoggedIn;
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -62,9 +66,8 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(padding: const EdgeInsets.all(12.0), child: HomeHeader()),
-            _buildOpacSections(),
+            _buildTopOpacSections(),
             Padding(padding: EdgeInsets.all(12.0), child: BookSharingCard()),
-            Padding(padding: EdgeInsets.all(12), child: StatWidget()),
             Padding(
               padding: EdgeInsets.all(16),
               child: Text(
@@ -77,25 +80,29 @@ class _HomePageState extends State<HomePage> {
               padding: EdgeInsets.all(12),
               child: SizedBox(height: 250, child: OpacNewArrivals(data: _opacData?.newArrivals ?? [], loading: _opacLoading)),
             ),
-            Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                "Your Items",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
-                textAlign: TextAlign.start,
+            if (loggedIn) ...[
+              Padding(padding: EdgeInsets.all(12), child: StatWidget()),
+              Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  "Your Items",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
+                  textAlign: TextAlign.start,
+                ),
               ),
-            ),
-            Padding(
-              padding: EdgeInsets.all(12),
-              child: SizedBox(height: 250, child: HorizontalBookScroll()),
-            ),
+              Padding(
+                padding: EdgeInsets.all(12),
+                child: SizedBox(height: 250, child: HorizontalBookScroll()),
+              ),
+            ],
+            _buildBottomOpacSections(),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildOpacSections() {
+  Widget _buildTopOpacSections() {
     if (_opacLoading) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -140,6 +147,18 @@ class _HomePageState extends State<HomePage> {
       children: [
         if (data.quote != null)
           Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: _QuoteCard(quote: data.quote!)),
+        SizedBox(height: 8),
+      ],
+    );
+  }
+
+  Widget _buildBottomOpacSections() {
+    if (_opacLoading || _opacError != null) return SizedBox.shrink();
+    final data = _opacData!;
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
         if (data.bookArrangement.isNotEmpty)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
