@@ -70,30 +70,36 @@ class _AboutPageState extends State<AboutPage> {
                       TextStyle(fontSize: 40, fontWeight: FontWeight.w700)),
             ),
             AboutImage(id: 1),
-            SizedBox(
-              width: MediaQuery.of(context).size.width - 20,
-              child: Text(
-                  '''Welcome to the academic powerhouse of NIT Calicut — the Central Library. A legacy of knowledge since 1961, it stands as one of South India’s premier technical libraries. Spanning a vast 11,340 square meters, it houses an impressive collection of over 1,35,000 books in science, engineering, and technology.
-Serving a dynamic community of over 8,000 users — including undergraduate and postgraduate students, research scholars, faculty, and staff — the library is at the core of the institute’s academic and research excellence.
-
-Open daily from 8 AM to 12 Midnight, it supports both early risers and night owls.
-              '''),
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _StatCard(icon: Icons.menu_book, value: "1,35,000+", label: "Books"),
+                  _StatCard(icon: Icons.people, value: "8,000+", label: "Users"),
+                  _StatCard(icon: Icons.square_foot, value: "11,340", label: "Sq. Meters"),
+                ],
+              ),
             ),
             AboutImage(id: 2),
-            SizedBox(
-              width: MediaQuery.of(context).size.width - 20,
+            Padding(
+              padding: EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  _StatCard(icon: Icons.computer, value: "KOHA", label: "Library System"),
+                  _StatCard(icon: Icons.wifi, value: "RFID", label: "Technology"),
+                  _StatCard(icon: Icons.event_seat, value: "500", label: "Seating"),
+                ],
+              ),
+            ),
+            Padding(
+              padding: EdgeInsets.only(bottom: 8),
               child: Text(
-                '''Smart. Seamless. Student-Centric.
-The library is fully automated, providing both on-campus and remote access through modern digital infrastructure. Key features include:
-•  KOHA Library Management System for efficient navigation
-•  RFID technology for quick check-ins and check-outs
-•  500-user seating capacity with advanced facilities
-•  Online catalog for easy search and reservations
-
-What Sets It Apart?
-Unlike rule-bound academic spaces, this library follows a need-based, user-first philosophy. It's designed to empower users through open access and responsive services.
-Whether you're studying, researching, or exploring new ideas, the Central Library is your gateway to knowledge — always connected, always evolving.
-                '''),
+                "Open daily 8 AM – 12 Midnight  •  Since 1961",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+              ),
             ),
             AboutImage(id: 3),
 
@@ -241,6 +247,47 @@ List<String> _splitSchedule(String schedule) {
       .split(RegExp(r'(?<=\))\s*'))
       .where((s) => s.isNotEmpty)
       .toList();
+}
+
+class _StatCard extends StatelessWidget {
+  final IconData icon;
+  final String value;
+  final String label;
+  const _StatCard({required this.icon, required this.value, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 0,
+      color: Colors.deepPurple.shade50,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: SizedBox(
+        width: 100,
+        child: Padding(
+          padding: EdgeInsets.symmetric(vertical: 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, color: Colors.deepPurple, size: 24),
+              SizedBox(height: 6),
+              Text(
+                value,
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 16,
+                  color: Colors.deepPurple.shade800,
+                ),
+              ),
+              Text(
+                label,
+                style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class AboutImage extends StatelessWidget {
