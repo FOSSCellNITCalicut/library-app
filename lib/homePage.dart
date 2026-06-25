@@ -5,9 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:library_nitc/bookPage.dart';
 import 'package:library_nitc/bookSharingCornerPage.dart';
 import 'package:library_nitc/auth_provider.dart';
-import 'package:library_nitc/models/book_arrangement.dart';
 import 'package:library_nitc/models/book_summary.dart';
-import 'package:library_nitc/models/business_hours.dart';
 import 'package:library_nitc/models/daily_quote.dart';
 import 'package:library_nitc/models/new_arrival.dart';
 import 'package:library_nitc/notifPage.dart';
@@ -95,7 +93,7 @@ class _HomePageState extends State<HomePage> {
                 child: SizedBox(height: 250, child: HorizontalBookScroll()),
               ),
             ],
-            _buildBottomOpacSections(),
+
           ],
         ),
       ),
@@ -147,28 +145,6 @@ class _HomePageState extends State<HomePage> {
       children: [
         if (data.quote != null)
           Padding(padding: const EdgeInsets.symmetric(horizontal: 12), child: _QuoteCard(quote: data.quote!)),
-        SizedBox(height: 8),
-      ],
-    );
-  }
-
-  Widget _buildBottomOpacSections() {
-    if (_opacLoading || _opacError != null) return SizedBox.shrink();
-    final data = _opacData!;
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (data.bookArrangement.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: _BookArrangementCard(entries: data.bookArrangement),
-          ),
-        if (data.businessHours.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: _BusinessHoursCard(entries: data.businessHours),
-          ),
         SizedBox(height: 8),
       ],
     );
@@ -660,124 +636,6 @@ class _QuoteCard extends StatelessWidget {
                 ),
               ),
             ],
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BookArrangementCard extends StatelessWidget {
-  final List<StackEntry> entries;
-  const _BookArrangementCard({required this.entries});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: Colors.purple.shade50,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 1,
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Book Arrangement",
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.purple.shade700,
-              ),
-            ),
-            SizedBox(height: 10),
-            ...entries.map(
-              (e) => Padding(
-                padding: EdgeInsets.only(bottom: 6),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.purple.shade100,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        e.stack,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 13,
-                          color: Colors.purple.shade900,
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      e.callRange,
-                      style: TextStyle(fontSize: 13, color: Colors.black87),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _BusinessHoursCard extends StatelessWidget {
-  final List<HourEntry> entries;
-  const _BusinessHoursCard({required this.entries});
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      color: Colors.purple.shade50,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      elevation: 1,
-      child: Padding(
-        padding: EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Library Business Hours",
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Colors.purple.shade700,
-              ),
-            ),
-            SizedBox(height: 10),
-            ...entries.map(
-              (e) => Padding(
-                padding: EdgeInsets.only(bottom: 8),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: 130,
-                      child: Text(
-                        e.area,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 13,
-                          color: Colors.black87,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Text(
-                        e.schedule,
-                        style: TextStyle(fontSize: 13, color: Colors.grey[700]),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
           ],
         ),
       ),
