@@ -83,7 +83,9 @@ class _ProfileContentState extends State<_ProfileContent> {
     super.initState();
     final token = widget.auth.accessToken;
     if (token != null) {
-      context.read<UserProvider>().fetchProfile(token);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.read<UserProvider>().fetchProfile(token);
+      });
     }
   }
 
