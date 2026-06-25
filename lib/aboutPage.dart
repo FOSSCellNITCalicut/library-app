@@ -101,7 +101,6 @@ class _AboutPageState extends State<AboutPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
       body: SingleChildScrollView(
         child: Column(
           children: [
