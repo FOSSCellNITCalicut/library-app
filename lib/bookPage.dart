@@ -10,6 +10,7 @@ import 'package:library_nitc/main.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:library_nitc/services/book_service.dart';
 import 'package:library_nitc/models/book_details.dart';
+import 'package:library_nitc/bookCoverImage.dart';
 
 // Public OPAC URL, matches the backend's default KOHA_OPAC_URL.
 const String _opacBaseUrl = 'https://opac.nitc.ac.in';
@@ -290,8 +291,8 @@ class _BookDetailCardState extends State<BookDetailCard> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(12),
-                child: Image.asset(
-                  "assets/stats_book_temp.png",
+                child: BookCoverImage(
+                  coverUrl: book.coverUrl,
                   height: 160,
                   width: 120,
                   fit: BoxFit.cover,

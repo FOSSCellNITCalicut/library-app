@@ -15,6 +15,7 @@ import 'package:library_nitc/user_provider.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:provider/provider.dart';
 import 'package:library_nitc/browsePage.dart';
+import 'package:library_nitc/bookCoverImage.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -995,8 +996,8 @@ class _BrowseCatalogState extends State<BrowseCatalog> {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(15),
                     ),
-                    child: Image.asset(
-                      'assets/stats_book_temp.png',
+                    child: BookCoverImage(
+                      coverUrl: book.coverUrl,
                       width: 145,
                       height: 185,
                       fit: BoxFit.fill,
@@ -1029,7 +1030,8 @@ class _BrowseCatalogState extends State<BrowseCatalog> {
 
 class SearchResults extends StatefulWidget {
   final String query;
-  const SearchResults({required this.query, super.key});
+  final bool keyboardIsOpen;
+  const SearchResults({required this.query, this.keyboardIsOpen = false, super.key});
 
   @override
   State<SearchResults> createState() => _SearchResultsState();
@@ -1111,16 +1113,25 @@ class _SearchResultsState extends State<SearchResults> {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    final keyboardIsOpen = widget.keyboardIsOpen;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: Text(
-            'Searched $_total results',
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w500),
+        if (!isLandscape || !keyboardIsOpen)
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: isLandscape ? 4 : 12,
+            ),
+            child: Text(
+              'Searched $_total results',
+              style: TextStyle(
+                fontSize: isLandscape ? 16 : 22,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
-        ),
         if (_isLoading && _books.isEmpty)
           const Center(child: CircularProgressIndicator()),
         if (_books.isEmpty && !_isLoading && _error == null)
@@ -1139,7 +1150,7 @@ class _SearchResultsState extends State<SearchResults> {
             ),
           ),
         if (_books.isNotEmpty || _isFetchingMore)
-          Expanded(
+          Flexible(
             child: ListView.builder(
               controller: _scrollController,
               itemCount:
@@ -1180,7 +1191,12 @@ class _SearchResultsState extends State<SearchResults> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(14),
-                            child: Image.asset('assets/stats_book_temp.png'),
+                            child: BookCoverImage(
+                              coverUrl: book.coverUrl,
+                              width: 108,
+                              height: 162,
+                              fit: BoxFit.fill,
+                            ),
                           ),
                           Expanded(
                             child: Padding(
