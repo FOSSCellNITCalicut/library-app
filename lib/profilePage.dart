@@ -287,54 +287,127 @@ class MyBooksList extends StatelessWidget {
           onTap: () {
             pushScreenWithNavBar(context, BookPage(biblioId: book.biblioId));
           },
-          child: SizedBox(
-            height: 178,
-            child: Padding(
-              padding: EdgeInsets.all(8),
-              child: Row(
-                children: [
-                  Flexible(
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(14),
-                      child: Image.asset("assets/stats_book_temp.png"),
+          child: Padding(
+            padding: const EdgeInsets.all(8),
+            child: Row(
+              children: [
+                Flexible(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: Image.asset("assets/stats_book_temp.png"),
+                  ),
+                ),
+                Flexible(
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          book.title,
+                          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 22),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        Text(book.author, maxLines: 1, overflow: TextOverflow.ellipsis),
+                        Text("Due date: ${book.dueDate}"),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            _RenewButton(book: book),
+                            const Spacer(),
+                            const Text("View More"),
+                            const Icon(Icons.arrow_right_outlined),
+                          ],
+                        ),
+                      ],
                     ),
                   ),
-                  Flexible(
-                    child: Padding(
-                      padding: EdgeInsets.all(12),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            book.title,
-                            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 22),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          Text(book.author, maxLines: 1, overflow: TextOverflow.ellipsis),
-                          Text("Due date: ${book.dueDate}"),
-                          Expanded(child: SizedBox()),
-                          SizedBox(
-                            width: MediaQuery.of(context).size.width - 183, // not a fan of this - 183 but eh whatever works
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Spacer(),
-                                Text("View More"),
-                                Icon(Icons.arrow_right_outlined)
-                              ],
-                            ),
-                          )
-                        ],
-                      ),
-                    ),
-                  )
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         );
       },
     );
+  }
+}
+
+class _RenewButton extends StatefulWidget {
+  final CheckedOutBook book;
+  const _RenewButton({required this.book});
+
+  @override
+  State<_RenewButton> createState() => _RenewButtonState();
+}
+
+class _RenewButtonState extends State<_RenewButton> {
+  bool _loading = false;
+
+  String _renewalCountText() {
+    final book = widget.book;
+    if (book.renewalsAllowed > 0) {
+      return "You have ${book.renewalsRemaining} of ${book.renewalsAllowed} renewals remaining.";
+    } else if (book.renewalsRemaining > 0) {
+      return "You have ${book.renewalsRemaining} renewal${book.renewalsRemaining == 1 ? '' : 's'} remaining.";
+    } else {
+      return "No renewals remaining.";
+    }
+  }
+
+  Future<void> _onTap() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text("Renew book?"),
+        content: Text(_renewalCountText()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text("Renew"),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final token = context.read<AuthProvider>().accessToken;
+    if (token == null) return;
+
+    setState(() => _loading = true);
+    try {
+      final result = await context.read<UserProvider>().renewBook(token, widget.book.issueId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message)));
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not renew. Try again later.")),
+      );
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _loading
+        ? const SizedBox(
+            height: 20,
+            width: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          )
+        : OutlinedButton(
+            onPressed: _onTap,
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            child: const Text("Renew"),
+          );
   }
 }
