@@ -380,7 +380,7 @@ class _RenewButtonState extends State<_RenewButton> {
 
     setState(() => _loading = true);
     try {
-      final result = await context.read<UserProvider>().renewBook(token, widget.book.itemNumber);
+      final result = await context.read<UserProvider>().renewBook(token, widget.book.issueId);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result.message)));
     } catch (_) {

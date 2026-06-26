@@ -8,7 +8,7 @@ const String _backendBaseUrl = 'http://localhost:8000';
 
 class CheckedOutBook {
   final int biblioId;
-  final int itemNumber;
+  final int issueId;
   final String title;
   final String author;
   final String dueDate;
@@ -17,7 +17,7 @@ class CheckedOutBook {
 
   CheckedOutBook({
     required this.biblioId,
-    required this.itemNumber,
+    required this.issueId,
     required this.title,
     required this.author,
     required this.dueDate,
@@ -28,7 +28,7 @@ class CheckedOutBook {
   factory CheckedOutBook.fromJson(Map<String, dynamic> json) {
     return CheckedOutBook(
       biblioId: json['biblio_id'] as int,
-      itemNumber: json['item_number'] as int? ?? 0,
+      issueId: json['issue_id'] as int? ?? 0,
       title: json['title'] as String? ?? '',
       author: json['author'] as String? ?? '',
       dueDate: json['due_date'] as String? ?? '',
@@ -342,9 +342,9 @@ class UserProvider extends ChangeNotifier {
   /// updated due date and remaining renewal count are reflected immediately.
   /// Never throws on a Koha-side rejection -- that comes back as
   /// RenewResult(success: false, message: ...).
-  Future<RenewResult> renewBook(String accessToken, int itemNumber) async {
+  Future<RenewResult> renewBook(String accessToken, int issueId) async {
     final response = await http.post(
-      Uri.parse('$_backendBaseUrl/api/v1/user/renew/$itemNumber'),
+      Uri.parse('$_backendBaseUrl/api/v1/user/renew/$issueId'),
       headers: {'Authorization': 'Bearer $accessToken'},
     );
     if (response.statusCode != 200) {
