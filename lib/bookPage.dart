@@ -17,7 +17,9 @@ const String _opacBaseUrl = 'https://opac.nitc.ac.in';
 
 class BookPage extends StatefulWidget {
   final int biblioId;
-  const BookPage({required this.biblioId, super.key});
+  final BookDetail? book;
+
+  const BookPage({required this.biblioId, this.book, super.key});
 
   @override
   State<StatefulWidget> createState() => _BookPageState();
@@ -48,8 +50,7 @@ class _BookPageState extends State<BookPage> {
 
     //await Future.delayed(const Duration(seconds: 2));  //to see loading page
 
-
-    final data = await _service.getBookDetail(widget.biblioId);
+    final data = widget.book ?? await _service.getBookDetail(widget.biblioId);
 
     setState(() {
       book = data;
@@ -205,8 +206,13 @@ class BookDetailCard extends StatefulWidget {
 }
 
 class _BookDetailCardState extends State<BookDetailCard> {
+  final BookService _bookService = BookService();
   BookStatus? _bookStatus;
   bool _renewLoading = false;
+
+  BookAvailability? _availabilityResult;
+  bool _availabilityLoading = false;
+  bool _availabilityError = false;
 
   @override
   void initState() {
@@ -223,7 +229,30 @@ class _BookDetailCardState extends State<BookDetailCard> {
           .fetchBookStatus(token, widget.book.biblioId);
       if (mounted) setState(() => _bookStatus = status);
     } catch (_) {
-      // Leave _bookStatus null -- falls back to "Place Hold".
+      // Leave _bookStatus null -- falls back to "Check Availability".
+    }
+  }
+
+  Future<void> _checkAvailability() async {
+    setState(() {
+      _availabilityLoading = true;
+      _availabilityError = false;
+    });
+    try {
+      final result = await _bookService.checkAvailability(widget.book.biblioId);
+      if (mounted) {
+        setState(() {
+          _availabilityResult = result;
+          _availabilityLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _availabilityLoading = false;
+          _availabilityError = true;
+        });
+      }
     }
   }
 
@@ -280,6 +309,22 @@ class _BookDetailCardState extends State<BookDetailCard> {
     }
   }
 
+  void _onPlaceHoldTap() {
+    final book = widget.book;
+    pushWithNavBar(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PlaceHoldScreen(
+          biblioId: book.biblioId,
+          title: book.title,
+          author: book.authors.isNotEmpty
+              ? book.authors.join(", ")
+              : "Unknown author",
+        ),
+      ),
+    );
+  }
+
   Widget _infoRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
@@ -303,6 +348,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
     final book = widget.book;
     final available = book.isAvailable;
     final borrowed = _bookStatus?.borrowedByCurrentUser ?? false;
+    final showPlaceHold = _availabilityResult?.available ?? false;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -431,9 +477,8 @@ class _BookDetailCardState extends State<BookDetailCard> {
               ),
               SizedBox(width: 8),
 
-              // Shows "Renew" if GET /user/book-status confirmed this book is
-              // currently borrowed by the logged-in user, otherwise "Place Hold".
-              // Defaults to "Place Hold" while loading / when logged out / on error.
+              // Shows "Renew" if user has the book, "Check Availability" otherwise.
+              // After availability check: if available, shows "Place Hold".
               Expanded(
                 child: borrowed
                     ? FilledButton.icon(
@@ -450,32 +495,32 @@ class _BookDetailCardState extends State<BookDetailCard> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       )
-                    : FilledButton.icon(
-                        // Not gated on `available` -- Koha allows placing a hold
-                        // on an item regardless of current availability (and
-                        // CanBookBeReserved on the backend is the real source
-                        // of truth either way; PlaceHoldScreen surfaces its
-                        // answer instead of guessing here).
-                        onPressed: () {
-                          pushWithNavBar(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PlaceHoldScreen(
-                                biblioId: book.biblioId,
-                                title: book.title,
-                                author: book.authors.isNotEmpty
-                                    ? book.authors.join(", ")
-                                    : "Unknown author",
-                              ),
+                    : showPlaceHold
+                        ? FilledButton.icon(
+                            onPressed: _onPlaceHoldTap,
+                            icon: const Icon(Icons.bookmark),
+                            label: const Text(
+                              "Place Hold",
+                              overflow: TextOverflow.ellipsis,
                             ),
-                          );
-                        },
-                        icon: const Icon(Icons.bookmark),
-                        label: const Text(
-                          "Place Hold",
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
+                          )
+                        : FilledButton.icon(
+                            onPressed: _availabilityLoading ? null : _checkAvailability,
+                            icon: _availabilityLoading
+                                ? const SizedBox(
+                                    height: 16,
+                                    width: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
+                                : const Icon(Icons.search),
+                            label: Text(
+                              _availabilityError
+                                  ? "Failed to fetch\nlatest availability"
+                                  : "Check\nAvailability",
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
               ),
             ],
           )

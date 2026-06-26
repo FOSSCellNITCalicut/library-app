@@ -74,6 +74,29 @@ class BookDetail {
   bool get isAvailable => availableCopies > 0;
 }
 
+class BookAvailability {
+  final int biblioId;
+  final bool available;
+  final int availableCopies;
+  final int totalCopies;
+
+  BookAvailability({
+    required this.biblioId,
+    required this.available,
+    required this.availableCopies,
+    required this.totalCopies,
+  });
+
+  factory BookAvailability.fromJson(Map<String, dynamic> json) {
+    return BookAvailability(
+      biblioId: json['biblio_id'] as int,
+      available: json['available'] as bool,
+      availableCopies: json['available_copies'] as int,
+      totalCopies: json['total_copies'] as int,
+    );
+  }
+}
+
 
 
 class BookCopy {

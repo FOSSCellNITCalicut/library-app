@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:library_nitc/models/book_details.dart';
+import 'package:library_nitc/models/book_details.dart' show BookAvailability, BookDetail;
 
 const String kBaseUrl = 'http://localhost:8000';
 
@@ -42,6 +42,16 @@ class BookService {
       return BookDetail.fromJson(jsonDecode(res.body));
     } else {
       throw Exception('Detail failed: ${res.body}');
+    }
+  }
+
+  Future<BookAvailability> checkAvailability(int biblioId) async {
+    final uri = Uri.parse('$baseUrl/api/v1/books/$biblioId/availability');
+    final res = await http.get(uri);
+    if (res.statusCode == 200) {
+      return BookAvailability.fromJson(jsonDecode(res.body));
+    } else {
+      throw Exception('Availability check failed: ${res.body}');
     }
   }
 }
