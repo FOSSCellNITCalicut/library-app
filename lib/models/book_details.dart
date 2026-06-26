@@ -1,3 +1,5 @@
+import 'package:library_nitc/utils/ddc_categories.dart';
+
 class BookDetail {
   final int biblioId;
   final String title;
@@ -123,4 +125,11 @@ class BookCopy {
       acquisitionDate: json['acquisition_date'] ?? '',
     );
   }
+
+  String get bookType {
+    final ddc = getBookTypeFromCallNumber(callNumber);
+    return ddc ?? 'General';
+  }
+
+  bool get isAvailable => status == 'Available';
 }

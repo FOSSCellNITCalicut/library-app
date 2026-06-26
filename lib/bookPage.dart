@@ -10,6 +10,7 @@ import 'package:library_nitc/main.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:library_nitc/services/book_service.dart';
 import 'package:library_nitc/models/book_details.dart';
+import 'package:library_nitc/utils/ddc_categories.dart';
 import 'package:library_nitc/bookCoverImage.dart';
 
 // Public OPAC URL, matches the backend's default KOHA_OPAC_URL.
@@ -157,13 +158,15 @@ class _BookPageState extends State<BookPage> {
   final b = book!;
 
   return Scaffold(
-    appBar: AppBar(
-      leading: IconButton(
-        onPressed: () => Navigator.of(context).pop(),
-        icon: Icon(Icons.arrow_back),
+      appBar: AppBar(
+        leading: IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: Icon(Icons.arrow_back),
+        ),
+        title: b.title.isNotEmpty && !b.title.startsWith('Unknown')
+            ? Text(b.title, overflow: TextOverflow.ellipsis)
+            : null,
       ),
-      title: Text(b.title, overflow: TextOverflow.ellipsis),
-    ),
 
     // SingleChildScrollView (instead of a bare Column+Expanded) so the page
     // scrolls instead of overflowing when there's less vertical room --
@@ -179,9 +182,13 @@ class _BookPageState extends State<BookPage> {
           SizedBox(height: 8),
 
           Text(
-            "Holdings (${b.copies.length})",
+            "Availability & Locations",
             style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
           ),
+
+          SizedBox(height: 8),
+
+          AvailabilitySummary(book: b),
 
           SizedBox(height: 8),
 
@@ -380,8 +387,8 @@ class _BookDetailCardState extends State<BookDetailCard> {
                     Text(
                       book.title,
                       style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
 
@@ -389,18 +396,28 @@ class _BookDetailCardState extends State<BookDetailCard> {
 
                     Text(
                       book.authors.isNotEmpty
-                          ? book.authors.join(", ")
+                          ? "by ${book.authors.join(" | ")}"
                           : "Unknown author",
                       style: const TextStyle(color: Colors.black54),
                     ),
 
                     const SizedBox(height: 6),
 
-                    Text(
-                      available ? "Available" : "Unavailable",
-                      style: TextStyle(
-                        color: available ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.w500,
+                    RichText(
+                      text: TextSpan(
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                        children: [
+                          const TextSpan(
+                            text: "Status: ",
+                            style: TextStyle(color: Colors.black54),
+                          ),
+                          TextSpan(
+                            text: available ? "Available" : "Unavailable",
+                            style: TextStyle(
+                              color: available ? Colors.green : Colors.red,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -415,7 +432,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
           if (book.publisher != null && book.publisher!.isNotEmpty)
             _infoRow("Publisher", book.publisher!),
 
-          if (book.publishedYear != null)
+          if (book.publishedYear != null && book.publishedYear > 0)
             _infoRow("Year", book.publishedYear.toString()),
 
           if (book.edition != null &&
@@ -458,10 +475,12 @@ class _BookDetailCardState extends State<BookDetailCard> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {},
-                  child: const Text(
-                    "Text",
-                    overflow: TextOverflow.ellipsis,
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
+                  child: const Text("Text"),
                 ),
               ),
               SizedBox(width: 8),
@@ -469,10 +488,12 @@ class _BookDetailCardState extends State<BookDetailCard> {
               Expanded(
                 child: OutlinedButton(
                   onPressed: () {},
-                  child: const Text(
-                    "General Books",
-                    overflow: TextOverflow.ellipsis,
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
+                  child: const Text("General Books"),
                 ),
               ),
               SizedBox(width: 8),
@@ -506,17 +527,26 @@ class _BookDetailCardState extends State<BookDetailCard> {
                           )
                         : FilledButton.icon(
                             onPressed: _availabilityLoading ? null : _checkAvailability,
+                            style: _availabilityResult != null
+                                ? FilledButton.styleFrom(
+                                    backgroundColor: Colors.red.shade700,
+                                  )
+                                : null,
                             icon: _availabilityLoading
                                 ? const SizedBox(
                                     height: 16,
                                     width: 16,
                                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                   )
-                                : const Icon(Icons.search),
+                                : Icon(_availabilityResult != null
+                                    ? Icons.close
+                                    : Icons.search),
                             label: Text(
                               _availabilityError
                                   ? "Failed to fetch\nlatest availability"
-                                  : "Check\nAvailability",
+                                  : _availabilityResult != null
+                                      ? "Not Available"
+                                      : "Check\nAvailability",
                               overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.center,
                             ),
@@ -531,16 +561,67 @@ class _BookDetailCardState extends State<BookDetailCard> {
 }
 
 
+class AvailabilitySummary extends StatelessWidget {
+  final BookDetail book;
+  const AvailabilitySummary({super.key, required this.book});
+
+  @override
+  Widget build(BuildContext context) {
+    final libAvailable = book.copies
+        .where((c) => c.branch == 'LIB' && c.isAvailable)
+        .length;
+    final libTotal = book.copies.where((c) => c.branch == 'LIB').length;
+    final matAvailable = book.copies
+        .where((c) => c.branch == 'MAT' && c.isAvailable)
+        .length;
+    final matTotal = book.copies.where((c) => c.branch == 'MAT').length;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.purple.shade50,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (libTotal > 0)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.location_on, size: 16, color: Colors.purple),
+                  const SizedBox(width: 4),
+                  Text(
+                    "Central Library (LIB) : $libAvailable available",
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                ],
+              ),
+            ),
+          if (matTotal > 0)
+            Row(
+              children: [
+                const Icon(Icons.location_on, size: 16, color: Colors.purple),
+                const SizedBox(width: 4),
+                Text(
+                  "Mathematics Library (MAT) : $matAvailable available",
+                  style: const TextStyle(fontSize: 13),
+                ),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
 class HoldingsList extends StatelessWidget {
   final List<BookCopy> copies;
   const HoldingsList({super.key, required this.copies});
 
   @override
   Widget build(BuildContext context) {
-    // shrinkWrap + NeverScrollableScrollPhysics: this list now sits inside
-    // the page's own SingleChildScrollView, so it should size itself to its
-    // content and let the outer scroll view handle scrolling, instead of
-    // demanding bounded height from a parent Expanded.
     return ListView.builder(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
@@ -549,21 +630,69 @@ class HoldingsList extends StatelessWidget {
         final copy = copies[index];
 
         return Container(
-          color: Colors.purple.shade50,
-          padding: EdgeInsets.all(12),
-          margin: EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: Colors.grey.shade300),
+            ),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(copy.branch),
-                  Spacer(),
-                  Text("SL NO: ${copy.itemId}"),
+                  Text(
+                    copy.bookType,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    copy.callNumber.isNotEmpty ? copy.callNumber : 'N/A',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
                 ],
               ),
-              Text("Call No: ${copy.callNumber ?? 'N/A'}"),
-              Text("Status: ${copy.status}"),
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  Text(
+                    copy.branch == 'LIB' ? 'Central Library (LIB)' : 'Mathematics Library (MAT)',
+                    style: const TextStyle(fontSize: 13),
+                  ),
+                  const Spacer(),
+                  Text(
+                    "Barcode: ${copy.itemId}",
+                    style: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Row(
+                children: [
+                  Text(
+                    "Status: ",
+                    style: TextStyle(fontSize: 13, color: Colors.grey.shade600),
+                  ),
+                  Text(
+                    copy.isAvailable ? "Available" : "Not Available",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: copy.isAvailable ? Colors.green : Colors.red,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         );
