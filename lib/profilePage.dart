@@ -351,7 +351,7 @@ class _RenewButtonState extends State<_RenewButton> {
     } else if (book.renewalsRemaining > 0) {
       return "You have ${book.renewalsRemaining} renewal${book.renewalsRemaining == 1 ? '' : 's'} remaining.";
     } else {
-      return "Renewal count information is not available.";
+      return "No renewals remaining.";
     }
   }
 

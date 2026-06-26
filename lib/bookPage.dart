@@ -234,7 +234,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
     } else if (s.renewalsRemaining > 0) {
       return "You have ${s.renewalsRemaining} renewal${s.renewalsRemaining == 1 ? '' : 's'} remaining.";
     } else {
-      return "Renewal count information is not available.";
+      return "No renewals remaining.";
     }
   }
 
