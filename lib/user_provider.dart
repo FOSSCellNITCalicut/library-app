@@ -168,6 +168,29 @@ class RenewResult {
   RenewResult({required this.success, required this.message});
 }
 
+class BookStatus {
+  final bool borrowedByCurrentUser;
+  final int issueId;
+  final int renewalsAllowed;
+  final int renewalsRemaining;
+
+  BookStatus({
+    required this.borrowedByCurrentUser,
+    required this.issueId,
+    required this.renewalsAllowed,
+    required this.renewalsRemaining,
+  });
+
+  factory BookStatus.fromJson(Map<String, dynamic> json) {
+    return BookStatus(
+      borrowedByCurrentUser: json['borrowed_by_current_user'] as bool? ?? false,
+      issueId: json['issue_id'] as int? ?? 0,
+      renewalsAllowed: json['renewals_allowed'] as int? ?? 0,
+      renewalsRemaining: json['renewals_remaining'] as int? ?? 0,
+    );
+  }
+}
+
 class PlaceHoldResult {
   final bool success;
   final String message;
@@ -264,9 +287,10 @@ class UserProvider extends ChangeNotifier {
   }
 
   /// One-off lookup, not cached on the provider -- used by BookDetailCard to
-  /// decide whether to show Renew or Place Hold for a specific book.
+  /// decide whether to show Renew or Place Hold, and to get issue_id and
+  /// renewal counts for the in-app renew dialog.
   /// Throws on any failure; callers should treat that as "not borrowed".
-  Future<bool> fetchBookStatus(String accessToken, int biblioId) async {
+  Future<BookStatus> fetchBookStatus(String accessToken, int biblioId) async {
     final response = await http.get(
       Uri.parse('$_backendBaseUrl/api/v1/user/book-status/$biblioId'),
       headers: {'Authorization': 'Bearer $accessToken'},
@@ -274,8 +298,7 @@ class UserProvider extends ChangeNotifier {
     if (response.statusCode != 200) {
       throw 'Server error (${response.statusCode})';
     }
-    final data = jsonDecode(response.body) as Map<String, dynamic>;
-    return data['borrowed_by_current_user'] as bool? ?? false;
+    return BookStatus.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   }
 
   /// One-off lookup for PlaceHoldScreen: which pickup branches are offered

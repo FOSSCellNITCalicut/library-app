@@ -205,7 +205,8 @@ class BookDetailCard extends StatefulWidget {
 }
 
 class _BookDetailCardState extends State<BookDetailCard> {
-  bool? _borrowedByCurrentUser;
+  BookStatus? _bookStatus;
+  bool _renewLoading = false;
 
   @override
   void initState() {
@@ -214,43 +215,69 @@ class _BookDetailCardState extends State<BookDetailCard> {
   }
 
   Future<void> _checkOwnership() async {
-    final auth = context.read<AuthProvider>();
-    final token = auth.accessToken;
+    final token = context.read<AuthProvider>().accessToken;
     if (token == null) return;
-
     try {
-      final borrowed = await context
+      final status = await context
           .read<UserProvider>()
           .fetchBookStatus(token, widget.book.biblioId);
-      if (mounted) setState(() => _borrowedByCurrentUser = borrowed);
+      if (mounted) setState(() => _bookStatus = status);
     } catch (_) {
-      // Leave _borrowedByCurrentUser null -- falls back to "Place Hold" below.
+      // Leave _bookStatus null -- falls back to "Place Hold".
     }
   }
 
-  void _showRenewDialog(BuildContext context) {
-    showDialog(
+  String _renewalCountText() {
+    final s = _bookStatus!;
+    if (s.renewalsAllowed > 0) {
+      return "You have ${s.renewalsRemaining} of ${s.renewalsAllowed} renewals remaining.";
+    } else if (s.renewalsRemaining > 0) {
+      return "You have ${s.renewalsRemaining} renewal${s.renewalsRemaining == 1 ? '' : 's'} remaining.";
+    } else {
+      return "Renewal count information is not available.";
+    }
+  }
+
+  Future<void> _onRenewTap() async {
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text("Renew"),
-        content: const Text(
-          "In-app renewal isn't available yet. Please renew this book on the OPAC website.",
-        ),
+      builder: (ctx) => AlertDialog(
+        title: const Text("Renew book?"),
+        content: Text(_renewalCountText()),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.of(ctx).pop(false),
             child: const Text("Cancel"),
           ),
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              launchUrl(Uri.parse(_opacBaseUrl), mode: LaunchMode.externalApplication);
-            },
-            child: const Text("Open OPAC website"),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text("Renew"),
           ),
         ],
       ),
     );
+    if (confirmed != true) return;
+
+    final token = context.read<AuthProvider>().accessToken;
+    if (token == null) return;
+
+    setState(() => _renewLoading = true);
+    try {
+      final result = await context
+          .read<UserProvider>()
+          .renewBook(token, _bookStatus!.issueId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.message)),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Could not renew. Try again later.")),
+      );
+    } finally {
+      if (mounted) setState(() => _renewLoading = false);
+    }
   }
 
   Widget _infoRow(String label, String value) {
@@ -275,7 +302,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
   Widget build(BuildContext context) {
     final book = widget.book;
     final available = book.isAvailable;
-    final borrowed = _borrowedByCurrentUser ?? false;
+    final borrowed = _bookStatus?.borrowedByCurrentUser ?? false;
 
     return Container(
       padding: const EdgeInsets.all(12),
@@ -410,8 +437,14 @@ class _BookDetailCardState extends State<BookDetailCard> {
               Expanded(
                 child: borrowed
                     ? FilledButton.icon(
-                        onPressed: () => _showRenewDialog(context),
-                        icon: const Icon(Icons.redo),
+                        onPressed: _renewLoading ? null : _onRenewTap,
+                        icon: _renewLoading
+                            ? const SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Icon(Icons.redo),
                         label: const Text(
                           "Renew",
                           overflow: TextOverflow.ellipsis,
