@@ -74,6 +74,11 @@ class BookDetail {
   }
 
   bool get isAvailable => availableCopies > 0;
+
+  String get bookType {
+    if (copies.isEmpty) return 'General';
+    return copies.first.bookType;
+  }
 }
 
 class BookAvailability {

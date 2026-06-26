@@ -87,7 +87,7 @@ class _MainPageState extends State<MainPage> {
       tabs: [
         PersistentTabConfig(
           screen: SafeArea(child: HomePage()),
-          item: ItemConfig(icon: Icon(Icons.home_outlined), title: "HOME", activeForegroundColor: Colors.black)
+          item: ItemConfig(icon: Icon(Icons.home_outlined), title: "HOME", activeForegroundColor: Colors.black, activeColorSecondary: Colors.purple.withOpacity(0.15))
         ),
         PersistentTabConfig(
             screen: SafeArea(child: ChatBotPage()),
