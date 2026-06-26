@@ -998,7 +998,6 @@ class _BrowseCatalogState extends State<BrowseCatalog> {
                     ),
                     child: BookCoverImage(
                       coverUrl: book.coverUrl,
-                      isbn: book.isbn,
                       width: 145,
                       height: 185,
                       fit: BoxFit.fill,
@@ -1194,7 +1193,6 @@ class _SearchResultsState extends State<SearchResults> {
                             borderRadius: BorderRadius.circular(14),
                             child: BookCoverImage(
                               coverUrl: book.coverUrl,
-                              isbn: book.isbn,
                               width: 108,
                               height: 162,
                               fit: BoxFit.fill,

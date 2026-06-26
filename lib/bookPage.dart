@@ -293,7 +293,6 @@ class _BookDetailCardState extends State<BookDetailCard> {
                 borderRadius: BorderRadius.circular(12),
                 child: BookCoverImage(
                   coverUrl: book.coverUrl,
-                  isbn: book.isbn,
                   height: 160,
                   width: 120,
                   fit: BoxFit.cover,
