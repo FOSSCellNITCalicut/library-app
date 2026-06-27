@@ -52,6 +52,15 @@ class _HomePageState extends State<HomePage> {
         _opacError = e.toString();
         _opacLoading = false;
       });
+      if (mounted) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("OPAC is unreachable")),
+            );
+          }
+        });
+      }
     }
   }
 

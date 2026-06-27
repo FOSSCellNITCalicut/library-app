@@ -457,42 +457,49 @@ class _BookDetailCardState extends State<BookDetailCard> {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-              OutlinedButton(
-                onPressed: () {},
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.black,
-                  side: const BorderSide(color: Colors.black),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
+                Expanded(
+                  flex: 4,
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      side: const BorderSide(color: Colors.black),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    child: const Text("Text", textAlign: TextAlign.center),
                   ),
                 ),
-                child: const Text("Text", textAlign: TextAlign.center),
-              ),
-              SizedBox(width: 8),
+                SizedBox(width: 8),
 
-              OutlinedButton(
-                onPressed: () {},
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.black,
-                  side: const BorderSide(color: Colors.black),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(4),
+                Expanded(
+                  flex: 5,
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.black,
+                      side: const BorderSide(color: Colors.black),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                    child: Text(book.bookType, textAlign: TextAlign.center),
                   ),
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
                 ),
-                child: Text(book.bookType, textAlign: TextAlign.center),
-              ),
-              SizedBox(width: 8),
+                SizedBox(width: 8),
 
-              // Shows "Renew" if user has the book, "Check Availability" otherwise.
-              // After availability check: if available, shows "Place Hold".
-              Expanded(
-                child: borrowed
+                // Shows "Renew" if user has the book, "Check Availability" otherwise.
+                // After availability check: if available, shows "Place Hold".
+                Expanded(
+                  flex: 6,
+                  child: borrowed
                     ? FilledButton.icon(
                         onPressed: _renewLoading ? null : _onRenewTap,
                         style: FilledButton.styleFrom(
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
                         icon: _renewLoading
@@ -513,7 +520,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
                             onPressed: _onPlaceHoldTap,
                             style: FilledButton.styleFrom(
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                             ),
                             icon: const Icon(Icons.bookmark, color: Colors.white),
@@ -523,43 +530,35 @@ class _BookDetailCardState extends State<BookDetailCard> {
                               style: TextStyle(color: Colors.white),
                             ),
                           )
-                        : FilledButton(
+                        : FilledButton.icon(
                             onPressed: _availabilityLoading ? null : _checkAvailability,
                             style: FilledButton.styleFrom(
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(4),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               backgroundColor: _availabilityResult != null
                                   ? Colors.red.shade700
                                   : null,
-                              padding: const EdgeInsets.symmetric(horizontal: 12),
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
                             ),
-                            child: _availabilityLoading
+                            icon: _availabilityLoading
                                 ? const SizedBox(
                                     height: 16,
                                     width: 16,
                                     child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                                   )
-                                : Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(_availabilityResult != null
-                                          ? Icons.close
-                                          : Icons.refresh, size: 18, color: Colors.white),
-                                      const SizedBox(width: 6),
-                                      Flexible(
-                                        child: Text(
-                                          _availabilityError
-                                              ? "Failed to fetch\nlatest availability"
-                                              : _availabilityResult != null
-                                                  ? "Not Available"
-                                                  : "Confirm Availability",
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(color: Colors.white, fontSize: 13),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                : Icon(_availabilityResult != null
+                                    ? Icons.close
+                                    : Icons.refresh, size: 18, color: Colors.white),
+                            label: Text(
+                              _availabilityError
+                                  ? "Failed to fetch\nlatest availability"
+                                  : _availabilityResult != null
+                                      ? "Not Available"
+                                      : "Confirm Availability",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white, fontSize: 13),
+                            ),
                           ),
               ),
             ],
@@ -708,14 +707,14 @@ class HoldingsList extends StatelessWidget {
               Text(
                 "Barcode: ${copy.itemId}",
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 4),
               RichText(
                 text: TextSpan(
-                  style: const TextStyle(fontSize: 13, color: Colors.black87),
+                  style: const TextStyle(fontSize: 14, color: Colors.black87),
                   children: [
                     TextSpan(
                       text: copy.branch == 'LIB' ? 'LIB' : 'MAT',
