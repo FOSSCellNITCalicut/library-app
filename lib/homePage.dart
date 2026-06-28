@@ -1164,7 +1164,8 @@ class _BrowseCatalogState extends State<BrowseCatalog> {
 
 class SearchResults extends StatefulWidget {
   final String query;
-  const SearchResults({required this.query, super.key});
+  final ScrollController? scrollController;
+  const SearchResults({required this.query, this.scrollController, super.key});
 
   @override
   State<SearchResults> createState() => _SearchResultsState();
@@ -1172,7 +1173,7 @@ class SearchResults extends StatefulWidget {
 
 class _SearchResultsState extends State<SearchResults> {
   final _service = BookService();
-  final _scrollController = ScrollController();
+  late final ScrollController _scrollController;
   final List<BookSummary> _books = [];
   int _currentPage = 1;
   int _total = 0;
@@ -1185,13 +1186,17 @@ class _SearchResultsState extends State<SearchResults> {
   @override
   void initState() {
     super.initState();
-    _fetchPage(1);
+    _scrollController = widget.scrollController ?? ScrollController();
     _scrollController.addListener(_onScroll);
+    _fetchPage(1);
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollController.removeListener(_onScroll);
+    if (widget.scrollController == null) {
+      _scrollController.dispose();
+    }
     super.dispose();
   }
 

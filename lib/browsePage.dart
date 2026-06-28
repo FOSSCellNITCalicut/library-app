@@ -45,6 +45,20 @@ class _BrowsePageState extends State<BrowsePage> with SingleTickerProviderStateM
   Timer? _hintTimer;
   Timer? _debounceTimer;
 
+  final List<String> _recentSearches = [];
+  final List<String> _suggestions = [
+    "Machine Learning",
+    "Data Science",
+    "Python Programming",
+    "Artificial Intelligence",
+    "Computer Networks",
+    "Database Systems",
+    "Operating Systems",
+    "Algorithms",
+  ];
+
+  bool _showSuggestions = false;
+
   @override
   void initState() {
     super.initState();
@@ -79,19 +93,48 @@ class _BrowsePageState extends State<BrowsePage> with SingleTickerProviderStateM
   }
 
   void _onSearchTextChanged() {
-    setState(() {});
+    setState(() => _showSuggestions = searchController.text.isNotEmpty && !focusNode.hasFocus);
 
     _debounceTimer?.cancel();
     final query = searchController.text.trim();
     if (query.isEmpty) {
       setState(() {
         currentState = SearchState.initial;
+        _showSuggestions = false;
       });
       return;
     }
     _debounceTimer = Timer(const Duration(milliseconds: 300), () {
       performSearch();
     });
+  }
+
+  void _onFocusChange() {
+    setState(() {
+      _showSuggestions = focusNode.hasFocus && searchController.text.isNotEmpty;
+    });
+  }
+
+  void _selectSuggestion(String suggestion) {
+    searchController.text = suggestion;
+    searchController.selection = TextSelection.fromPosition(
+      TextPosition(offset: suggestion.length),
+    );
+    setState(() => _showSuggestions = false);
+    if (!_recentSearches.contains(suggestion)) {
+      _recentSearches.insert(0, suggestion);
+      if (_recentSearches.length > 5) _recentSearches.removeLast();
+    }
+    performSearch();
+  }
+
+  List<String> _filteredSuggestions() {
+    final query = searchController.text.trim().toLowerCase();
+    if (query.isEmpty) return _recentSearches.isNotEmpty ? _recentSearches : [];
+    return _suggestions
+        .where((s) => s.toLowerCase().contains(query))
+        .take(5)
+        .toList();
   }
 
   void _startHintCycling() {
@@ -107,18 +150,9 @@ class _BrowsePageState extends State<BrowsePage> with SingleTickerProviderStateM
     });
   }
 
-  void _onFocusChange() {
-    setState(() {});
-  }
-
 // future API integration
 Future<List<int>> searchBooks(String searchTerm) async {
-  // Future API request:
-  // GET /opac-search.pl?q=<searchTerm>&format=rss2
-
   await Future.delayed(const Duration(seconds: 1));
-
-  // Mock results for now (same 7 hardcoded books)
   return List.generate(7, (index) => index);
 }
 
@@ -134,6 +168,7 @@ Future<void> performSearch() async {
 
   setState(() {
     currentState = SearchState.loading;
+    _showSuggestions = false;
   });
 
   final results = await searchBooks(query);
@@ -146,132 +181,162 @@ Future<void> performSearch() async {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("Browse"),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-      ),
+    final suggestions = _filteredSuggestions();
 
-      body: Padding(
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
         child: Column(
           children: [
 
-              // Search Bar - dynamic YouTube/WhatsApp style
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 250),
-                curve: Curves.easeInOut,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28),
-                  color: focusNode.hasFocus
+            // Search Bar
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeInOut,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(28),
+                color: focusNode.hasFocus
+                    ? Theme.of(context).colorScheme.surfaceContainerHighest
+                    : Theme.of(context).colorScheme.surfaceContainerLow,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: focusNode.hasFocus ? 0.12 : 0.08),
+                    blurRadius: focusNode.hasFocus ? 16 : 8,
+                    offset: Offset(0, focusNode.hasFocus ? 4 : 2),
+                  ),
+                ],
+              ),
+              child: TextField(
+                controller: searchController,
+                focusNode: focusNode,
+                onSubmitted: (value) => performSearch(),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
+                decoration: InputDecoration(
+                  hintText: _hints[_currentHintIndex],
+                  hintStyle: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontSize: 16,
+                  ),
+                        prefixIcon: Padding(
+                          padding: const EdgeInsets.only(left: 4, right: 4),
+                          child: IconButton(
+                            icon: const Icon(Icons.arrow_back),
+                            onPressed: () => Navigator.of(context).pop(),
+                            color: focusNode.hasFocus
+                                ? const Color(0xFF6A1B9A)
+                                : Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                  suffixIcon: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      AnimatedSize(
+                        duration: const Duration(milliseconds: 200),
+                        curve: Curves.easeInOut,
+                        child: searchController.text.isNotEmpty
+                            ? IconButton(
+                                onPressed: () {
+                                  searchController.clear();
+                                  setState(() {
+                                    currentState = SearchState.initial;
+                                    _showSuggestions = false;
+                                  });
+                                  focusNode.requestFocus();
+                                },
+                                icon: Icon(
+                                  Icons.close,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                                ),
+                              )
+                            : const SizedBox.shrink(),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text("AI Search coming soon!")),
+                          );
+                        },
+                        icon: const Icon(Icons.auto_awesome, color: Color(0xFF6A1B9A)),
+                      ),
+                    ],
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.outlineVariant,
+                      width: 1,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(28),
+                    borderSide: const BorderSide(color: Color(0xFF6A1B9A), width: 2),
+                  ),
+                  filled: true,
+                  fillColor: focusNode.hasFocus
                       ? Theme.of(context).colorScheme.surfaceContainerHighest
                       : Theme.of(context).colorScheme.surfaceContainerLow,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+              ),
+            ),
+
+            // Suggestions dropdown
+            if (_showSuggestions && suggestions.isNotEmpty)
+              Container(
+                margin: const EdgeInsets.only(top: 4),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surface,
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: focusNode.hasFocus ? 0.12 : 0.08),
-                      blurRadius: focusNode.hasFocus ? 16 : 8,
-                      offset: Offset(0, focusNode.hasFocus ? 4 : 2),
+                      color: Colors.black.withValues(alpha: 0.1),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-                child: TextField(
-                  controller: searchController,
-                  focusNode: focusNode,
-                  onSubmitted: (value) => performSearch(),
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Theme.of(context).colorScheme.onSurface,
-                  ),
-                  decoration: InputDecoration(
-                    hintText: _hints[_currentHintIndex],
-                    hintStyle: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      fontSize: 16,
-                    ),
-                    prefixIcon: AnimatedContainer(
-                      duration: const Duration(milliseconds: 250),
-                      curve: Curves.easeInOut,
-                      padding: const EdgeInsets.only(left: 12, right: 8),
-                      child: AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 250),
-                        child: focusNode.hasFocus
-                            ? const Icon(Icons.search, key: ValueKey('search_focused'), color: Color(0xFF6A1B9A))
-                            : Icon(Icons.search, key: const ValueKey('search_default'), color: Theme.of(context).colorScheme.onSurfaceVariant),
-                      ),
-                    ),
-                    suffixIcon: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AnimatedSize(
-                          duration: const Duration(milliseconds: 200),
-                          curve: Curves.easeInOut,
-                          child: searchController.text.isNotEmpty
-                              ? IconButton(
-                                  onPressed: () {
-                                    searchController.clear();
-                                    setState(() {
-                                      currentState = SearchState.initial;
-                                    });
-                                    focusNode.requestFocus();
-                                  },
-                                  icon: Icon(
-                                    Icons.close,
-                                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                                  ),
-                                )
-                              : const SizedBox.shrink(),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_recentSearches.isNotEmpty && searchController.text.trim().isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                        child: Row(
+                          children: [
+                            Icon(Icons.history, size: 16, color: Theme.of(context).colorScheme.onSurfaceVariant),
+                            const SizedBox(width: 8),
+                            Text("Recent", style: TextStyle(
+                              fontSize: 12,
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            )),
+                          ],
                         ),
-                        IconButton(
-                          onPressed: () {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("AI Search coming soon!"),
-                              ),
-                            );
-                          },
-                          icon: const Icon(
-                            Icons.auto_awesome,
-                            color: Color(0xFF6A1B9A),
-                          ),
-                        ),
-                      ],
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(28),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(28),
-                      borderSide: BorderSide(
-                        color: Theme.of(context).colorScheme.outlineVariant,
-                        width: 1,
                       ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(28),
-                      borderSide: const BorderSide(
-                        color: Color(0xFF6A1B9A),
-                        width: 2,
+                    ...suggestions.map((s) => ListTile(
+                      dense: true,
+                      leading: Icon(
+                        _recentSearches.contains(s) ? Icons.history : Icons.search,
+                        size: 20,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
                       ),
-                    ),
-                    filled: true,
-                    fillColor: focusNode.hasFocus
-                        ? Theme.of(context).colorScheme.surfaceContainerHighest
-                        : Theme.of(context).colorScheme.surfaceContainerLow,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                  ),
+                      title: Text(s, style: const TextStyle(fontSize: 14)),
+                      onTap: () => _selectSuggestion(s),
+                    )),
+                  ],
                 ),
               ),
 
             const SizedBox(height: 12),
 
-            // Filter Chips - always visible
+            // Filter Chips
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -296,9 +361,7 @@ Future<void> performSearch() async {
                 builder: (context) {
 
                   if (currentState == SearchState.loading) {
-                    return const Center(
-                      child: CircularProgressIndicator(),
-                    );
+                    return const Center(child: CircularProgressIndicator());
                   }
 
                   if (currentState == SearchState.empty) {
@@ -306,32 +369,14 @@ Future<void> performSearch() async {
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Image.asset(
-                            'assets/empty.png',
-                            height: 200,
-                          ),
-
+                          Image.asset('assets/empty.png', height: 200),
                           Transform.translate(
                             offset: const Offset(0, -20),
                             child: const Column(
                               children: [
-                                Text(
-                                  "No books found",
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-
+                                Text("No books found", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                                 SizedBox(height: 4),
-
-                                Text(
-                                  "Try another search",
-                                  style: TextStyle(
-                                    color: Colors.grey,
-                                    fontSize: 16,
-                                  ),
-                                ),
+                                Text("Try another search", style: TextStyle(color: Colors.grey, fontSize: 16)),
                               ],
                             ),
                           ),
@@ -358,6 +403,7 @@ Future<void> performSearch() async {
           ],
         ),
       ),
-  );
-}
+      ),
+    );
+  }
 }
