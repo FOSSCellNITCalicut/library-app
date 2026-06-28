@@ -177,11 +177,14 @@ class _BookPageState extends State<BookPage> {
         children: [
           BookDetailCard(book: b),
 
-          SizedBox(height: 8),
+          SizedBox(height: 12),
 
-          Text(
-            "Availability & Locations",
-            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              "Availability & Locations",
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+            ),
           ),
 
           SizedBox(height: 12),
@@ -343,17 +346,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
 
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.shade200,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      margin: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -431,13 +424,13 @@ class _BookDetailCardState extends State<BookDetailCard> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: Colors.grey.shade700,
                     side: BorderSide(color: Colors.grey.shade300),
-                    minimumSize: const Size(0, 36),
-                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    minimumSize: const Size(0, 40),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20),
                     ),
                   ),
-                  child: Text(c, style: const TextStyle(fontSize: 12)),
+                  child: Text(c, style: const TextStyle(fontSize: 13)),
                 ),
               ).toList(),
             ),
@@ -516,7 +509,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
                           ),
                 ),
       ],
-    ),
+      ),
     );
   }
 }
@@ -632,7 +625,7 @@ class HoldingsList extends StatelessWidget {
         final copy = copies[index];
 
         return Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(color: Colors.grey.shade300),
@@ -725,9 +718,12 @@ class PublisherInfoCard extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          "Publisher info",
-          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            "Publisher info",
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+          ),
         ),
         const SizedBox(height: 12),
         Container(
@@ -906,7 +902,7 @@ class _PlaceHoldScreenState extends State<PlaceHoldScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+  return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
