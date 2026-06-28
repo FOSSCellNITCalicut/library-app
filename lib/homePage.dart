@@ -1148,11 +1148,16 @@ class _SearchResultsState extends State<SearchResults> {
   final _service = BookService();
   late final ScrollController _scrollController;
   final List<BookSummary> _books = [];
+  final List<String> _selectedCategories = [];
+  final List<String> _availableCategories = [];
+  final List<String> _tempSelectedCategories = [];
+  final TextEditingController _categorySearchController = TextEditingController();
   int _currentPage = 1;
   int _total = 0;
   bool _isLoading = false;
   bool _isFetchingMore = false;
   bool _hasMore = true;
+
   String? _error;
   static const _perPage = 20;
 
@@ -1170,6 +1175,7 @@ class _SearchResultsState extends State<SearchResults> {
     if (widget.scrollController == null) {
       _scrollController.dispose();
     }
+    _categorySearchController.dispose();
     super.dispose();
   }
 
@@ -1181,6 +1187,46 @@ class _SearchResultsState extends State<SearchResults> {
         _error == null) {
       _fetchPage(_currentPage + 1);
     }
+  }
+
+
+
+  void _openFilterDialog() {
+    _tempSelectedCategories.clear();
+    _tempSelectedCategories.addAll(_selectedCategories);
+    _categorySearchController.clear();
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (context) => _CategoryFilterDialog(
+        availableCategories: _availableCategories,
+        selectedCategories: _tempSelectedCategories,
+        searchController: _categorySearchController,
+        onApply: () {
+          setState(() {
+            _selectedCategories.clear();
+            _selectedCategories.addAll(_tempSelectedCategories);
+            _currentPage = 1;
+            _fetchPage(1);
+          });
+          Navigator.pop(context);
+        },
+        onClear: () {
+          setState(() {
+            _tempSelectedCategories.clear();
+          });
+        },
+        onToggle: (category) {
+          setState(() {
+            if (_tempSelectedCategories.contains(category)) {
+              _tempSelectedCategories.remove(category);
+            } else {
+              _tempSelectedCategories.add(category);
+            }
+          });
+        },
+      ),
+    );
   }
 
   Future<void> _fetchPage(int page) async {
@@ -1196,18 +1242,27 @@ class _SearchResultsState extends State<SearchResults> {
       });
     }
     try {
-      final response = await _service.fetchSearch(widget.query, page, _perPage);
+      final response = await _service.fetchSearch(
+        widget.query,
+        page,
+        _perPage,
+        categories: _selectedCategories.isNotEmpty ? _selectedCategories : null,
+      );
       final decoded = jsonDecode(response.body) as Map<String, dynamic>;
       final items =
           (decoded['items'] as List)
               .map((e) => BookSummary.fromJson(e as Map<String, dynamic>))
               .toList();
       final total = decoded['total'] as int? ?? _total;
+      final availableCategories = (decoded['available_categories'] as List?)
+          ?.cast<String>() ?? [];
       setState(() {
         if (page == 1) _books.clear();
         _books.addAll(items);
         _total = total;
         _currentPage = page;
+        _availableCategories.clear();
+        _availableCategories.addAll(availableCategories);
         if (items.length < _perPage) _hasMore = false;
       });
     } catch (e) {
@@ -1260,18 +1315,82 @@ class _SearchResultsState extends State<SearchResults> {
           (_error != null ? 1 : 0),
       itemBuilder: (context, index) {
         if (index == 0) {
-          return Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: isLandscape ? 4 : 12,
-            ),
-            child: Text(
-              'Searched $_total results',
-              style: TextStyle(
-                fontSize: isLandscape ? 16 : 22,
-                fontWeight: FontWeight.w500,
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: isLandscape ? 4 : 12,
+                ),
+                child: Text(
+                  'Searched $_total results',
+                  style: TextStyle(
+                    fontSize: isLandscape ? 16 : 22,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
               ),
-            ),
+              if (_availableCategories.isNotEmpty)
+                Padding(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: isLandscape ? 4 : 8,
+                  ),
+                  child: InkWell(
+                    onTap: _openFilterDialog,
+                    child: Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: isLandscape ? 8 : 12,
+                      ),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade300),
+                        borderRadius: BorderRadius.circular(8),
+                        color: _selectedCategories.isNotEmpty ? Colors.purple.shade50 : Colors.white,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.filter_list,
+                            size: isLandscape ? 16 : 20,
+                            color: _selectedCategories.isNotEmpty ? Colors.purple : Colors.grey.shade700,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Filter by Category',
+                            style: TextStyle(
+                              fontSize: isLandscape ? 14 : 16,
+                              fontWeight: FontWeight.w500,
+                              color: _selectedCategories.isNotEmpty ? Colors.purple : Colors.grey.shade700,
+                            ),
+                          ),
+                          if (_selectedCategories.isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.purple,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                '${_selectedCategories.length}',
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
           );
         }
 
@@ -1363,6 +1482,188 @@ class _SearchResultsState extends State<SearchResults> {
           ),
         );
       },
+    );
+  }
+}
+
+class _CategoryFilterDialog extends StatefulWidget {
+  final List<String> availableCategories;
+  final List<String> selectedCategories;
+  final TextEditingController searchController;
+  final VoidCallback onApply;
+  final VoidCallback onClear;
+  final ValueChanged<String> onToggle;
+
+  const _CategoryFilterDialog({
+    required this.availableCategories,
+    required this.selectedCategories,
+    required this.searchController,
+    required this.onApply,
+    required this.onClear,
+    required this.onToggle,
+  });
+
+  @override
+  State<_CategoryFilterDialog> createState() => _CategoryFilterDialogState();
+}
+
+class _CategoryFilterDialogState extends State<_CategoryFilterDialog> {
+  List<String> _filtered = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _filtered = List.from(widget.availableCategories);
+    widget.searchController.addListener(_onSearch);
+  }
+
+  @override
+  void dispose() {
+    widget.searchController.removeListener(_onSearch);
+    super.dispose();
+  }
+
+  void _onSearch() {
+    final q = widget.searchController.text.toLowerCase();
+    setState(() {
+      _filtered = widget.availableCategories
+          .where((c) => c.toLowerCase().contains(q))
+          .toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    return Container(
+      constraints: BoxConstraints(maxHeight: screenHeight * 0.75),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Handle bar
+          const SizedBox(height: 12),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: Colors.grey.shade300,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 16),
+
+          // Title row
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                const Text(
+                  'Filter by Category',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                ),
+                const Spacer(),
+                TextButton(
+                  onPressed: () {
+                    widget.onClear();
+                    setState(() {});
+                  },
+                  child: const Text('Clear all'),
+                ),
+              ],
+            ),
+          ),
+
+          // Search field
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: TextField(
+              controller: widget.searchController,
+              decoration: InputDecoration(
+                hintText: 'Search categories...',
+                prefixIcon: const Icon(Icons.search, size: 20),
+                contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(color: Colors.grey.shade300),
+                ),
+              ),
+            ),
+          ),
+
+          // Category list
+          Flexible(
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: _filtered.length,
+              itemBuilder: (context, index) {
+                final category = _filtered[index];
+                final isSelected = widget.selectedCategories.contains(category);
+                return StatefulBuilder(
+                  builder: (context, localSetState) {
+                    return CheckboxListTile(
+                      value: widget.selectedCategories.contains(category),
+                      onChanged: (_) {
+                        widget.onToggle(category);
+                        localSetState(() {});
+                        setState(() {});
+                      },
+                      title: Text(
+                        category,
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                          color: isSelected ? Colors.purple : Colors.black87,
+                        ),
+                      ),
+                      activeColor: Colors.purple,
+                      checkColor: Colors.white,
+                      controlAffinity: ListTileControlAffinity.trailing,
+                      dense: true,
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+
+          // Apply button
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+                16, 12, 16, MediaQuery.of(context).viewInsets.bottom + 16),
+            child: SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: widget.onApply,
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.purple,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  widget.selectedCategories.isEmpty
+                      ? 'Show All Results'
+                      : 'Apply (${widget.selectedCategories.length} selected)',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

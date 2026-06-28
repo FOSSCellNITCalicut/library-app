@@ -19,10 +19,25 @@ class BookService {
     return response;
   }
 
-  Future<http.Response> fetchSearch(String query, int page, int perPage) async {
+  Future<http.Response> fetchSearch(String query, int page, int perPage, {List<String>? categories}) async {
+    final queryParams = <String, String>{
+      'q': query,
+      'page': '$page',
+      'per_page': '$perPage',
+    };
     final uri = Uri.parse('$baseUrl/api/v1/books/search').replace(
-      queryParameters: {'q': query, 'page': '$page', 'per_page': '$perPage'},
+      queryParameters: queryParams,
     );
+    // Add category parameters manually since Uri doesn't support multiple values for same key
+    if (categories != null && categories.isNotEmpty) {
+      final categoryParams = categories.map((cat) => 'category=${Uri.encodeComponent(cat)}').join('&');
+      final finalUri = Uri.parse('$uri&$categoryParams');
+      final response = await http.get(finalUri);
+      if (response.statusCode < 200 || response.statusCode >= 300) {
+        throw Exception('HTTP ${response.statusCode}: ${response.body}');
+      }
+      return response;
+    }
     final response = await http.get(uri);
     if (response.statusCode < 200 || response.statusCode >= 300) {
       throw Exception('HTTP ${response.statusCode}: ${response.body}');
