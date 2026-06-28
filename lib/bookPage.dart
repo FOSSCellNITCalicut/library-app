@@ -164,9 +164,6 @@ class _BookPageState extends State<BookPage> {
           onPressed: () => Navigator.of(context).pop(),
           icon: Icon(Icons.arrow_back),
         ),
-        title: b.title.isNotEmpty && !b.title.startsWith('Unknown')
-            ? Text(b.title, overflow: TextOverflow.ellipsis)
-            : null,
       ),
 
     // SingleChildScrollView (instead of a bare Column+Expanded) so the page
@@ -184,10 +181,10 @@ class _BookPageState extends State<BookPage> {
 
           Text(
             "Availability & Locations",
-            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
           ),
 
-          SizedBox(height: 8),
+          SizedBox(height: 12),
 
           AvailabilitySummary(book: b),
 
@@ -347,7 +344,15 @@ class _BookDetailCardState extends State<BookDetailCard> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
+        color: Colors.white,
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200,
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -388,16 +393,6 @@ class _BookDetailCardState extends State<BookDetailCard> {
                       style: const TextStyle(color: Colors.black54),
                     ),
 
-                    const SizedBox(height: 4),
-                    Text(
-                      "ISBN : ${book.isbn.isNotEmpty ? book.isbn.join(", ") : "N/A"}",
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                    ),
-                    Text(
-                      "Published Year : ${book.publishedYear > 0 ? book.publishedYear.toString() : "N/A"}",
-                      style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                    ),
-
                     const SizedBox(height: 6),
 
                     RichText(
@@ -425,81 +420,41 @@ class _BookDetailCardState extends State<BookDetailCard> {
 
           const SizedBox(height: 12),
 
-          /// CATEGORIES - like a box
-          if (book.categories.isNotEmpty) ...[
-            const SizedBox(height: 10),
+          /// CATEGORY TAGS
+          if (book.categories.isNotEmpty)
             Wrap(
-              spacing: 6,
+              spacing: 8,
               runSpacing: 6,
-              children: book.categories
-                  .map(
-                    (c) => Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.purple.shade50,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        c,
-                        style: const TextStyle(fontSize: 12),
-                      ),
+              children: book.categories.map(
+                (c) => OutlinedButton(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.grey.shade700,
+                    side: BorderSide(color: Colors.grey.shade300),
+                    minimumSize: const Size(0, 36),
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                  )
-                  .toList(),
+                  ),
+                  child: Text(c, style: const TextStyle(fontSize: 12)),
+                ),
+              ).toList(),
             ),
-          ],
 
           const SizedBox(height: 12),
 
-          /// ACTION BUTTONS
-          IntrinsicHeight(
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Expanded(
-                  flex: 4,
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      side: const BorderSide(color: Colors.black),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: const Text("Text", textAlign: TextAlign.center),
-                  ),
-                ),
-                SizedBox(width: 8),
-
-                Expanded(
-                  flex: 5,
-                  child: OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      side: const BorderSide(color: Colors.black),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                    ),
-                    child: Text(book.bookType, textAlign: TextAlign.center),
-                  ),
-                ),
-                SizedBox(width: 8),
-
-                // Shows "Renew" if user has the book, "Check Availability" otherwise.
-                // After availability check: if available, shows "Place Hold".
-                Expanded(
-                  flex: 6,
-                  child: borrowed
+          /// PRIMARY ACTION
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: borrowed
                     ? FilledButton.icon(
                         onPressed: _renewLoading ? null : _onRenewTap,
                         style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF624F9A),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
+                            borderRadius: BorderRadius.circular(20),
                           ),
                         ),
                         icon: _renewLoading
@@ -519,8 +474,9 @@ class _BookDetailCardState extends State<BookDetailCard> {
                         ? FilledButton.icon(
                             onPressed: _onPlaceHoldTap,
                             style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF624F9A),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                             ),
                             icon: const Icon(Icons.bookmark, color: Colors.white),
@@ -533,12 +489,10 @@ class _BookDetailCardState extends State<BookDetailCard> {
                         : FilledButton.icon(
                             onPressed: _availabilityLoading ? null : _checkAvailability,
                             style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF624F9A),
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                                borderRadius: BorderRadius.circular(20),
                               ),
-                              backgroundColor: _availabilityResult != null
-                                  ? Colors.red.shade700
-                                  : null,
                               padding: const EdgeInsets.symmetric(horizontal: 8),
                             ),
                             icon: _availabilityLoading
@@ -560,10 +514,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
                               style: TextStyle(color: Colors.white, fontSize: 13),
                             ),
                           ),
-              ),
-            ],
-          ),
-        ),
+                ),
       ],
     ),
     );
@@ -590,7 +541,14 @@ class AvailabilitySummary extends StatelessWidget {
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: Colors.purple.shade50,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200,
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -748,65 +706,90 @@ class PublisherInfoCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final hasPublisher = book.publisher.isNotEmpty;
     final hasYear = book.publishedYear > 0;
-    final hasEdition = book.edition != null && book.edition!.trim().isNotEmpty;
     final hasIsbn = book.isbn.isNotEmpty;
-    final hasAny = hasPublisher || hasYear || hasEdition || hasIsbn;
+    final hasAny = hasPublisher || hasYear || hasIsbn;
 
     if (!hasAny) return const SizedBox.shrink();
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Publisher info",
-            style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600),
+    final rows = <TableRow>[];
+    if (hasPublisher) {
+      rows.add(_borderedRow("Publisher", book.publisher));
+    }
+    if (hasYear) {
+      rows.add(_borderedRow("Published Year", book.publishedYear.toString()));
+    }
+    if (hasIsbn) {
+      rows.add(_borderedRow("ISBN", book.isbn.join(", ")));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "Publisher info",
+          style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black),
+            borderRadius: BorderRadius.circular(4),
           ),
-          const SizedBox(height: 8),
-          if (hasPublisher)
-            _row("Publisher", book.publisher),
-          if (hasYear)
-            _row("Published Year", book.publishedYear.toString()),
-          if (hasEdition)
-            _row("Edition", book.edition!),
-          if (hasIsbn)
-            _row("ISBN", book.isbn.join(", ")),
-        ],
-      ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: Table(
+              columnWidths: const {
+                0: FlexColumnWidth(3),
+                1: FlexColumnWidth(5),
+              },
+              children: [
+                for (int i = 0; i < rows.length; i++)
+                  if (i < rows.length - 1)
+                    TableRow(
+                      children: [
+                        _cell(rows[i].children[0] as Widget, isLabel: true, hasBorder: true),
+                        _cell(rows[i].children[1] as Widget, isLabel: false, hasBorder: true),
+                      ],
+                    )
+                  else
+                    TableRow(
+                      children: [
+                        _cell(rows[i].children[0] as Widget, isLabel: true, hasBorder: false),
+                        _cell(rows[i].children[1] as Widget, isLabel: false, hasBorder: false),
+                      ],
+                    ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _row(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 110,
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 13,
-                color: Colors.black54,
+  TableRow _borderedRow(String label, String value) {
+    return TableRow(
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+        Text(value, style: const TextStyle(fontSize: 14, color: Colors.black87)),
+      ],
+    );
+  }
+
+  Widget _cell(Widget child, {required bool isLabel, required bool hasBorder}) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: hasBorder
+            ? Border(
+                bottom: BorderSide(color: Colors.black),
+                right: isLabel ? BorderSide(color: Colors.black) : BorderSide.none,
+              )
+            : Border(
+                right: isLabel ? BorderSide(color: Colors.black) : BorderSide.none,
               ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(fontSize: 13, color: Colors.black87),
-            ),
-          ),
-        ],
       ),
+      child: child,
     );
   }
 }
