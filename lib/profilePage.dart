@@ -129,8 +129,12 @@ class _ProfileContentState extends State<_ProfileContent> {
         return SingleChildScrollView(
           child: Column(
             children: [
-              FittedBox(
-                child: Row(
+              Padding(
+                padding: const EdgeInsets.only(left: 30),
+                child: Align(
+                  alignment: Alignment.centerLeft,
+                  child: FittedBox(
+                  child: Row(
                   children: [
                     Column(
                       children: [
@@ -146,19 +150,21 @@ class _ProfileContentState extends State<_ProfileContent> {
                       ],
                     ),
                     Padding(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(50),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const Text('Roll no:', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black87)),
-                          Text(profile?.rollNo ?? auth.rollNo ?? '', style: const TextStyle(color: Colors.black87)),
+                          Text(profile?.rollNo ?? auth.rollNo ?? '', style: const TextStyle(color: Colors.black87, fontSize:20)),
                           const SizedBox(height: 10),
                         ],
                       ),
                     ),
                   ],
                 ),
+              ),
+              ),
               ),
               Padding(
                 padding: const EdgeInsets.all(12),

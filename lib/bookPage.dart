@@ -17,7 +17,9 @@ const String _opacBaseUrl = 'https://opac.nitc.ac.in';
 
 class BookPage extends StatefulWidget {
   final int biblioId;
-  const BookPage({required this.biblioId, super.key});
+  final BookDetail? book;
+
+  const BookPage({required this.biblioId, this.book, super.key});
 
   @override
   State<StatefulWidget> createState() => _BookPageState();
@@ -48,8 +50,7 @@ class _BookPageState extends State<BookPage> {
 
     //await Future.delayed(const Duration(seconds: 2));  //to see loading page
 
-
-    final data = await _service.getBookDetail(widget.biblioId);
+    final data = widget.book ?? await _service.getBookDetail(widget.biblioId);
 
     setState(() {
       book = data;
@@ -156,13 +157,14 @@ class _BookPageState extends State<BookPage> {
   final b = book!;
 
   return Scaffold(
-    appBar: AppBar(
-      leading: IconButton(
-        onPressed: () => Navigator.of(context).pop(),
-        icon: Icon(Icons.arrow_back),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        leading: IconButton(
+          onPressed: () => Navigator.of(context).pop(),
+          icon: Icon(Icons.arrow_back),
+        ),  
       ),
-      title: Text(b.title, overflow: TextOverflow.ellipsis),
-    ),
 
     // SingleChildScrollView (instead of a bare Column+Expanded) so the page
     // scrolls instead of overflowing when there's less vertical room --
@@ -175,16 +177,27 @@ class _BookPageState extends State<BookPage> {
         children: [
           BookDetailCard(book: b),
 
-          SizedBox(height: 8),
+          SizedBox(height: 12),
 
-          Text(
-            "Holdings (${b.copies.length})",
-            style: TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Text(
+              "Availability & Locations",
+              style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+            ),
           ),
+
+          SizedBox(height: 12),
+
+          AvailabilitySummary(book: b),
 
           SizedBox(height: 8),
 
           HoldingsList(copies: b.copies),
+
+          SizedBox(height: 12),
+
+          PublisherInfoCard(book: b),
         ],
       ),
     ),
@@ -205,8 +218,13 @@ class BookDetailCard extends StatefulWidget {
 }
 
 class _BookDetailCardState extends State<BookDetailCard> {
+  final BookService _bookService = BookService();
   BookStatus? _bookStatus;
   bool _renewLoading = false;
+
+  BookAvailability? _availabilityResult;
+  bool _availabilityLoading = false;
+  bool _availabilityError = false;
 
   @override
   void initState() {
@@ -223,7 +241,30 @@ class _BookDetailCardState extends State<BookDetailCard> {
           .fetchBookStatus(token, widget.book.biblioId);
       if (mounted) setState(() => _bookStatus = status);
     } catch (_) {
-      // Leave _bookStatus null -- falls back to "Place Hold".
+      // Leave _bookStatus null -- falls back to "Check Availability".
+    }
+  }
+
+  Future<void> _checkAvailability() async {
+    setState(() {
+      _availabilityLoading = true;
+      _availabilityError = false;
+    });
+    try {
+      final result = await _bookService.checkAvailability(widget.book.biblioId);
+      if (mounted) {
+        setState(() {
+          _availabilityResult = result;
+          _availabilityLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _availabilityLoading = false;
+          _availabilityError = true;
+        });
+      }
     }
   }
 
@@ -280,19 +321,17 @@ class _BookDetailCardState extends State<BookDetailCard> {
     }
   }
 
-  Widget _infoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 4),
-      child: RichText(
-        text: TextSpan(
-          style: const TextStyle(fontSize: 14, color: Colors.black87),
-          children: [
-            TextSpan(
-              text: "$label: ",
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            TextSpan(text: value),
-          ],
+  void _onPlaceHoldTap() {
+    final book = widget.book;
+    pushWithNavBar(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PlaceHoldScreen(
+          biblioId: book.biblioId,
+          title: book.title,
+          author: book.authors.isNotEmpty
+              ? book.authors.join(", ")
+              : "Unknown author",
         ),
       ),
     );
@@ -303,12 +342,11 @@ class _BookDetailCardState extends State<BookDetailCard> {
     final book = widget.book;
     final available = book.isAvailable;
     final borrowed = _bookStatus?.borrowedByCurrentUser ?? false;
+    final showPlaceHold = _availabilityResult?.available ?? false;
 
     return Container(
       padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      margin: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -334,8 +372,8 @@ class _BookDetailCardState extends State<BookDetailCard> {
                     Text(
                       book.title,
                       style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 22,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
 
@@ -343,18 +381,28 @@ class _BookDetailCardState extends State<BookDetailCard> {
 
                     Text(
                       book.authors.isNotEmpty
-                          ? book.authors.join(", ")
+                          ? "by ${book.authors.join(" | ")}"
                           : "Unknown author",
                       style: const TextStyle(color: Colors.black54),
                     ),
 
                     const SizedBox(height: 6),
 
-                    Text(
-                      available ? "Available" : "Unavailable",
-                      style: TextStyle(
-                        color: available ? Colors.green : Colors.red,
-                        fontWeight: FontWeight.w500,
+                    RichText(
+                      text: TextSpan(
+                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                        children: [
+                          const TextSpan(
+                            text: "Status: ",
+                            style: TextStyle(color: Colors.black54),
+                          ),
+                          TextSpan(
+                            text: available ? "Available" : "Unavailable",
+                            style: TextStyle(
+                              color: available ? Colors.green : Colors.red,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
@@ -365,126 +413,203 @@ class _BookDetailCardState extends State<BookDetailCard> {
 
           const SizedBox(height: 12),
 
-          /// OPTIONAL FIELDS (ONLY IF PRESENT) -publisher year edition isbn
-          if (book.publisher != null && book.publisher!.isNotEmpty)
-            _infoRow("Publisher", book.publisher!),
-
-          if (book.publishedYear != null)
-            _infoRow("Year", book.publishedYear.toString()),
-
-          if (book.edition != null &&
-              book.edition.toString().trim().isNotEmpty)
-            _infoRow("Edition", book.edition.toString()),
-
-          if (book.isbn != null && book.isbn!.isNotEmpty)
-            _infoRow("ISBN", book.isbn!.join(", ")),
-
-          /// CATEGORIES - like a box
-          if (book.categories.isNotEmpty) ...[
-            const SizedBox(height: 10),
+          /// CATEGORY TAGS
+          if (book.categories.isNotEmpty)
             Wrap(
-              spacing: 6,
+              spacing: 8,
               runSpacing: 6,
-              children: book.categories
-                  .map(
-                    (c) => Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.purple.shade50,
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        c,
-                        style: const TextStyle(fontSize: 12),
-                      ),
+              children: book.categories.map(
+                (c) => OutlinedButton(
+                  onPressed: () {},
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.grey.shade700,
+                    side: BorderSide(color: Colors.grey.shade300),
+                    minimumSize: const Size(0, 40),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                  )
-                  .toList(),
+                  ),
+                  child: Text(c, style: const TextStyle(fontSize: 13)),
+                ),
+              ).toList(),
             ),
-          ],
 
           const SizedBox(height: 12),
 
-          /// ACTION BUTTONS
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {},
-                  child: const Text(
-                    "Text",
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-              SizedBox(width: 8),
-
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {},
-                  child: const Text(
-                    "General Books",
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-              ),
-              SizedBox(width: 8),
-
-              // Shows "Renew" if GET /user/book-status confirmed this book is
-              // currently borrowed by the logged-in user, otherwise "Place Hold".
-              // Defaults to "Place Hold" while loading / when logged out / on error.
-              Expanded(
-                child: borrowed
+          /// PRIMARY ACTION
+          SizedBox(
+            width: double.infinity,
+            height: 48,
+            child: borrowed
                     ? FilledButton.icon(
                         onPressed: _renewLoading ? null : _onRenewTap,
+                        style: FilledButton.styleFrom(
+                          backgroundColor: const Color(0xFF624F9A),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                        ),
                         icon: _renewLoading
                             ? const SizedBox(
                                 height: 16,
                                 width: 16,
                                 child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
                               )
-                            : const Icon(Icons.redo),
+                            : const Icon(Icons.redo, color: Colors.white),
                         label: const Text(
                           "Renew",
-                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.white),
                         ),
                       )
-                    : FilledButton.icon(
-                        // Not gated on `available` -- Koha allows placing a hold
-                        // on an item regardless of current availability (and
-                        // CanBookBeReserved on the backend is the real source
-                        // of truth either way; PlaceHoldScreen surfaces its
-                        // answer instead of guessing here).
-                        onPressed: () {
-                          pushWithNavBar(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => PlaceHoldScreen(
-                                biblioId: book.biblioId,
-                                title: book.title,
-                                author: book.authors.isNotEmpty
-                                    ? book.authors.join(", ")
-                                    : "Unknown author",
+                    : showPlaceHold
+                        ? FilledButton.icon(
+                            onPressed: _onPlaceHoldTap,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF624F9A),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
                               ),
                             ),
-                          );
-                        },
-                        icon: const Icon(Icons.bookmark),
-                        label: const Text(
-                          "Place Hold",
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-              ),
-            ],
-          )
-        ],
+                            icon: const Icon(Icons.bookmark, color: Colors.white),
+                            label: const Text(
+                              "Place Hold",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          )
+                        : FilledButton.icon(
+                            onPressed: _availabilityLoading ? null : _checkAvailability,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: const Color(0xFF624F9A),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                            ),
+                            icon: _availabilityLoading
+                                ? const SizedBox(
+                                    height: 16,
+                                    width: 16,
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                  )
+                                : Icon(_availabilityResult != null
+                                    ? Icons.close
+                                    : Icons.refresh, size: 18, color: Colors.white),
+                            label: Text(
+                              _availabilityError
+                                  ? "Failed to fetch\nlatest availability"
+                                  : _availabilityResult != null
+                                      ? "Not Available"
+                                      : "Confirm Availability",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white, fontSize: 16),
+                            ),
+                          ),
+                ),
+      ],
       ),
     );
   }
 }
 
+
+class AvailabilitySummary extends StatelessWidget {
+  final BookDetail book;
+  const AvailabilitySummary({super.key, required this.book});
+
+  @override
+  Widget build(BuildContext context) {
+    final libAvailable = book.copies
+        .where((c) => c.branch == 'LIB' && c.isAvailable)
+        .length;
+    final libTotal = book.copies.where((c) => c.branch == 'LIB').length;
+    final matAvailable = book.copies
+        .where((c) => c.branch == 'MAT' && c.isAvailable)
+        .length;
+    final matTotal = book.copies.where((c) => c.branch == 'MAT').length;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.purple.shade50,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.shade200,
+            blurRadius: 6,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (libTotal > 0)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                children: [
+                  const Icon(Icons.location_on_outlined, size: 16, color: Colors.purple),
+                  const SizedBox(width: 4),
+                  RichText(
+                    text: TextSpan(
+                      style: const TextStyle(fontSize: 13, color: Colors.black87),
+                      children: [
+                        TextSpan(
+                          text: "Central Library (LIB) : ",
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                          ),
+                        ),
+                        TextSpan(
+                          text: "$libAvailable available",
+                          style: TextStyle(
+                            color: libAvailable > 0 ? Colors.green : Colors.red,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (matTotal > 0)
+            Row(
+              children: [
+                const Icon(Icons.location_on_outlined, size: 16, color: Colors.purple),
+                const SizedBox(width: 4),
+                RichText(
+                  text: TextSpan(
+                    style: const TextStyle(fontSize: 13, color: Colors.black87),
+                    children: [
+                      TextSpan(
+                        text: "Mathematics Library (MAT) : ",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                        ),
+                      ),
+                      TextSpan(
+                        text: "$matAvailable available",
+                        style: TextStyle(
+                          color: matAvailable > 0 ? Colors.green : Colors.red,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+    );
+  }
+}
 
 class HoldingsList extends StatelessWidget {
   final List<BookCopy> copies;
@@ -492,10 +617,6 @@ class HoldingsList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // shrinkWrap + NeverScrollableScrollPhysics: this list now sits inside
-    // the page's own SingleChildScrollView, so it should size itself to its
-    // content and let the outer scroll view handle scrolling, instead of
-    // demanding bounded height from a parent Expanded.
     return ListView.builder(
       shrinkWrap: true,
       physics: NeverScrollableScrollPhysics(),
@@ -504,21 +625,63 @@ class HoldingsList extends StatelessWidget {
         final copy = copies[index];
 
         return Container(
-          color: Colors.purple.shade50,
-          padding: EdgeInsets.all(12),
-          margin: EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: BorderSide(color: Colors.grey.shade300),
+            ),
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(copy.branch),
-                  Spacer(),
-                  Text("SL NO: ${copy.itemId}"),
+                  Text(
+                    copy.bookType,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 13,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    copy.callNumber.isNotEmpty ? copy.callNumber : 'N/A',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
                 ],
               ),
-              Text("Call No: ${copy.callNumber ?? 'N/A'}"),
-              Text("Status: ${copy.status}"),
+              const SizedBox(height: 6),
+              Text(
+                "Barcode: ${copy.itemId}",
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(height: 4),
+              RichText(
+                text: TextSpan(
+                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                  children: [
+                    TextSpan(
+                      text: copy.branch == 'LIB' ? 'LIB' : 'MAT',
+                      style: const TextStyle(fontWeight: FontWeight.w500),
+                    ),
+                    const TextSpan(text: " | Status: "),
+                    TextSpan(
+                      text: copy.isAvailable ? "Available" : "Not Available",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500,
+                        color: copy.isAvailable ? Colors.green : Colors.red,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         );
@@ -526,6 +689,105 @@ class HoldingsList extends StatelessWidget {
     );
   }
 
+}
+
+class PublisherInfoCard extends StatelessWidget {
+  final BookDetail book;
+  const PublisherInfoCard({super.key, required this.book});
+
+  @override
+  Widget build(BuildContext context) {
+    final hasPublisher = book.publisher.isNotEmpty;
+    final hasYear = book.publishedYear > 0;
+    final hasIsbn = book.isbn.isNotEmpty;
+    final hasAny = hasPublisher || hasYear || hasIsbn;
+
+    if (!hasAny) return const SizedBox.shrink();
+
+    final rows = <TableRow>[];
+    if (hasPublisher) {
+      rows.add(_borderedRow("Publisher", book.publisher));
+    }
+    if (hasYear) {
+      rows.add(_borderedRow("Published Year", book.publishedYear.toString()));
+    }
+    if (hasIsbn) {
+      rows.add(_borderedRow("ISBN", book.isbn.join(", ")));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          child: Text(
+            "Publisher info",
+            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black),
+            borderRadius: BorderRadius.circular(4),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(3),
+            child: Table(
+              columnWidths: const {
+                0: FlexColumnWidth(3),
+                1: FlexColumnWidth(5),
+              },
+              children: [
+                for (int i = 0; i < rows.length; i++)
+                  if (i < rows.length - 1)
+                    TableRow(
+                      children: [
+                        _cell(rows[i].children[0] as Widget, isLabel: true, hasBorder: true),
+                        _cell(rows[i].children[1] as Widget, isLabel: false, hasBorder: true),
+                      ],
+                    )
+                  else
+                    TableRow(
+                      children: [
+                        _cell(rows[i].children[0] as Widget, isLabel: true, hasBorder: false),
+                        _cell(rows[i].children[1] as Widget, isLabel: false, hasBorder: false),
+                      ],
+                    ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  TableRow _borderedRow(String label, String value) {
+    return TableRow(
+      children: [
+        Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+        Text(value, style: const TextStyle(fontSize: 14, color: Colors.black87)),
+      ],
+    );
+  }
+
+  Widget _cell(Widget child, {required bool isLabel, required bool hasBorder}) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        border: hasBorder
+            ? Border(
+                bottom: BorderSide(color: Colors.black),
+                right: isLabel ? BorderSide(color: Colors.black) : BorderSide.none,
+              )
+            : Border(
+                right: isLabel ? BorderSide(color: Colors.black) : BorderSide.none,
+              ),
+      ),
+      child: child,
+    );
+  }
 }
 
 class PlaceHoldScreen extends StatefulWidget {
@@ -640,7 +902,7 @@ class _PlaceHoldScreenState extends State<PlaceHoldScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+  return Scaffold(
       appBar: AppBar(
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),

@@ -1,3 +1,5 @@
+import 'package:library_nitc/utils/ddc_categories.dart';
+
 class BookDetail {
   final int biblioId;
   final String title;
@@ -72,6 +74,34 @@ class BookDetail {
   }
 
   bool get isAvailable => availableCopies > 0;
+
+  String get bookType {
+    if (copies.isEmpty) return 'General';
+    return copies.first.bookType;
+  }
+}
+
+class BookAvailability {
+  final int biblioId;
+  final bool available;
+  final int availableCopies;
+  final int totalCopies;
+
+  BookAvailability({
+    required this.biblioId,
+    required this.available,
+    required this.availableCopies,
+    required this.totalCopies,
+  });
+
+  factory BookAvailability.fromJson(Map<String, dynamic> json) {
+    return BookAvailability(
+      biblioId: json['biblio_id'] as int,
+      available: json['available'] as bool,
+      availableCopies: json['available_copies'] as int,
+      totalCopies: json['total_copies'] as int,
+    );
+  }
 }
 
 
@@ -100,4 +130,11 @@ class BookCopy {
       acquisitionDate: json['acquisition_date'] ?? '',
     );
   }
+
+  String get bookType {
+    final ddc = getBookTypeFromCallNumber(callNumber);
+    return ddc ?? 'General';
+  }
+
+  bool get isAvailable => status == 'Available';
 }
