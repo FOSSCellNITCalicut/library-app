@@ -158,12 +158,12 @@ class _BookPageState extends State<BookPage> {
 
   return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           onPressed: () => Navigator.of(context).pop(),
           icon: Icon(Icons.arrow_back),
-        ),
+        ),  
       ),
 
     // SingleChildScrollView (instead of a bare Column+Expanded) so the page
@@ -504,7 +504,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
                                       ? "Not Available"
                                       : "Confirm Availability",
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white, fontSize: 13),
+                              style: TextStyle(color: Colors.white, fontSize: 16),
                             ),
                           ),
                 ),

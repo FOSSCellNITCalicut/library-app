@@ -88,6 +88,7 @@ Future<void> performSearch() async {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
+        surfaceTintColor: Colors.transparent,
         title: const Text("Browse"),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -168,7 +169,7 @@ Future<void> performSearch() async {
 
             SizedBox(height: (isLandscape && keyboardIsOpen) ? 4 : (isLandscape ? 12 : 24)),
 
-            if (!isLandscape) ...[
+            if (!isLandscape && currentState == SearchState.initial) ...[
               const Text(
                 "Browse Books",
                 style: TextStyle(

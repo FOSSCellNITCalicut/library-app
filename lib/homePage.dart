@@ -1129,9 +1129,11 @@ class _SearchResultsState extends State<SearchResults> {
       children: [
         if (!isLandscape || !keyboardIsOpen)
           Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 12,
-              vertical: isLandscape ? 4 : 12,
+            padding: EdgeInsets.only(
+              left: 12,
+              right: 12,
+              top: isLandscape ? 4 : 0,
+              bottom: isLandscape ? 4 : 8
             ),
             child: Text(
               'Searched $_total results',
