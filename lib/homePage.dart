@@ -17,6 +17,7 @@ import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:provider/provider.dart';
 import 'package:library_nitc/browsePage.dart';
 import 'package:library_nitc/bookCoverImage.dart';
+import 'package:library_nitc/curriculumPage.dart';
 
 Route _slideUpRoute(Widget page) {
   return PageRouteBuilder(
@@ -112,6 +113,53 @@ class _HomePageState extends State<HomePage> {
           children: [
             Padding(padding: const EdgeInsets.all(12.0), child: HomeHeader()),
             _buildTopOpacSections(),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Card(
+                color: Colors.purple.shade50,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                elevation: 1,
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => Navigator.of(context).push(MaterialPageRoute(
+                      builder: (_) => const ProgrammeSelectionPage(),
+                    )),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: const Color(0xFF6A1B9A),
+                            child: const Icon(Icons.school, color: Colors.white),
+                          ),
+                          const SizedBox(width: 16),
+                          const Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "Academic Curriculum",
+                                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  "Browse courses by programme",
+                                  style: TextStyle(fontSize: 14, color: Colors.black54),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right, color: Color(0xFF6A1B9A)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
             Padding(padding: EdgeInsets.all(12.0), child: BookSharingCard()),
             Padding(
               padding: EdgeInsets.all(16),
