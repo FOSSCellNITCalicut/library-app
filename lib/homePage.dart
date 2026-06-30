@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,8 @@ import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:provider/provider.dart';
 import 'package:library_nitc/browsePage.dart';
 import 'package:library_nitc/bookCoverImage.dart';
+import 'package:library_nitc/globals.dart';
+
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -265,67 +268,168 @@ class HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Expanded(
-          child: Text(
-            "NITC Library",
-            style: TextStyle(
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF6A1B9A),
+        Row(
+          children: [
+            const Expanded(
+              child: Text(
+                "NITC Library",
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF6A1B9A),
+                ),
+              ),
             ),
-          ),
+            IconButton(
+              onPressed: () {
+                pushScreenWithNavBar(context, const Notifpage());
+              },
+              icon: const Icon(Icons.notifications_none_outlined, size: 28),
+            ),
+          ],
         ),
-        IconButton(
-          onPressed: () {
-            pushScreenWithNavBar(context, const Notifpage());
-          },
-          icon: const Icon(Icons.notifications_none_outlined, size: 28),
-        ),
-        IconButton(
-          onPressed: () {
-            pushScreenWithNavBar(context, const BrowsePage());
-          },
-          icon: const Icon(Icons.search, size: 28),
-        ),
+        const SizedBox(height: 12),
+        const MainSearchBar(),
       ],
     );
   }
 }
 
-class MainSearchBar extends StatelessWidget {
+class MainSearchBar extends StatefulWidget {
   const MainSearchBar({super.key});
 
   @override
+  State<MainSearchBar> createState() => _MainSearchBarState();
+}
+
+class _MainSearchBarState extends State<MainSearchBar> with SingleTickerProviderStateMixin {
+  final FocusNode _focusNode = FocusNode();
+  late AnimationController _hintAnimController;
+  int _currentHintIndex = 0;
+  Timer? _hintTimer;
+
+  final List<String> _hints = [
+    "Search Books, eBooks...",
+    "Try 'Machine Learning'...",
+    "Search by author...",
+    "Search by ISBN...",
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() => setState(() {}));
+    _hintAnimController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+    _startHintCycling();
+  }
+
+  @override
+  void dispose() {
+    _hintTimer?.cancel();
+    _hintAnimController.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _startHintCycling() {
+    _hintTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      _hintAnimController.forward().then((_) {
+        if (mounted) {
+          setState(() {
+            _currentHintIndex = (_currentHintIndex + 1) % _hints.length;
+          });
+          _hintAnimController.reverse();
+        }
+      });
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return SearchAnchor(
-      builder: (BuildContext context, SearchController controller) {
-        return SearchBar(
-          controller: controller,
-          leading: const Icon(Icons.search),
-          hintText: "Search Books, eBooks...",
-          padding: const WidgetStatePropertyAll<EdgeInsets>(
-            EdgeInsets.symmetric(horizontal: 16.0),
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeInOut,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(28),
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-
-          //navigate to browse page
-          onTap: () {
-            pushScreenWithNavBar(context, const BrowsePage());
-          },
-
-          trailing: <Widget>[
-            IconButton(
-              onPressed: () {
-                pushScreenWithNavBar(context, Notifpage());
-              },
-              icon: Icon(Icons.notifications_none_outlined),
+        ],
+      ),
+      child: TextField(
+        focusNode: _focusNode,
+        readOnly: true,
+        showCursor: false,
+        onTap: () {
+          Navigator.of(context, rootNavigator: true).push(slideRoute(const BrowsePage()));
+        },
+        style: TextStyle(
+          fontSize: 16,
+          color: Theme.of(context).colorScheme.onSurface,
+        ),
+        decoration: InputDecoration(
+          hintText: _hints[_currentHintIndex],
+          hintStyle: TextStyle(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+            fontSize: 16,
+          ),
+          prefixIcon: Padding(
+            padding: const EdgeInsets.only(left: 12, right: 8),
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: const Icon(Icons.search, key: ValueKey('search_home'), color: Color(0xFF6A1B9A)),
             ),
-          ],
-        );
-      },
-      suggestionsBuilder:
-          (context, controller) => [], // Doesnt look like proper usage
+          ),
+          suffixIcon: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                onPressed: () {
+                  Navigator.of(context, rootNavigator: true).push(slideRoute(const BrowsePage()));
+                },
+                icon: const Icon(
+                  Icons.auto_awesome,
+                  color: Color(0xFF6A1B9A),
+                ),
+              ),
+            ],
+          ),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(28),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(28),
+            borderSide: BorderSide(
+              color: Theme.of(context).colorScheme.outlineVariant,
+              width: 0.2,
+            ),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(28),
+            borderSide: const BorderSide(
+              color: Color(0xFF6A1B9A),
+              width: 0.5,
+            ),
+          ),
+          filled: true,
+          fillColor: Theme.of(context).colorScheme.surfaceContainerLow,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
+        ),
+      ),
     );
   }
 }
@@ -397,9 +501,7 @@ class StatWidget extends StatelessWidget {
                     onPressed: () {
                       pushWithNavBar(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => BookPage(biblioId: firstBook.biblioId),
-                        ),
+                        slideRoute(BookPage(biblioId: firstBook.biblioId)),
                       );
                     },
                     child: Text("View", style: TextStyle(color: Colors.purple)),
@@ -514,9 +616,7 @@ class HorizontalBookScroll extends StatelessWidget {
           onTap: () {
             pushWithNavBar(
               context,
-              MaterialPageRoute(
-                builder: (_) => BookPage(biblioId: book.biblioId),
-              ),
+              slideRoute(BookPage(biblioId: book.biblioId)),
             );
           },
           child: SizedBox(
@@ -769,7 +869,7 @@ class OpacNewArrivals extends StatelessWidget {
         return GestureDetector(
           onTap: () => pushWithNavBar(
             context,
-            MaterialPageRoute(builder: (_) => BookPage(biblioId: book.biblioId)),
+            slideRoute(BookPage(biblioId: book.biblioId)),
           ),
           child: SizedBox(
             width: 145,
@@ -985,9 +1085,7 @@ class _BrowseCatalogState extends State<BrowseCatalog> {
           onTap:
               () => pushWithNavBar(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => BookPage(biblioId: book.biblioId),
-                ),
+                slideRoute(BookPage(biblioId: book.biblioId)),
               ),
           child: SizedBox(
             width: 145,
@@ -1039,8 +1137,8 @@ class _BrowseCatalogState extends State<BrowseCatalog> {
 
 class SearchResults extends StatefulWidget {
   final String query;
-  final bool keyboardIsOpen;
-  const SearchResults({required this.query, this.keyboardIsOpen = false, super.key});
+  final ScrollController? scrollController;
+  const SearchResults({required this.query, this.scrollController, super.key});
 
   @override
   State<SearchResults> createState() => _SearchResultsState();
@@ -1048,7 +1146,7 @@ class SearchResults extends StatefulWidget {
 
 class _SearchResultsState extends State<SearchResults> {
   final _service = BookService();
-  final _scrollController = ScrollController();
+  late final ScrollController _scrollController;
   final List<BookSummary> _books = [];
   int _currentPage = 1;
   int _total = 0;
@@ -1061,13 +1159,17 @@ class _SearchResultsState extends State<SearchResults> {
   @override
   void initState() {
     super.initState();
-    _fetchPage(1);
+    _scrollController = widget.scrollController ?? ScrollController();
     _scrollController.addListener(_onScroll);
+    _fetchPage(1);
   }
 
   @override
   void dispose() {
-    _scrollController.dispose();
+    _scrollController.removeListener(_onScroll);
+    if (widget.scrollController == null) {
+      _scrollController.dispose();
+    }
     super.dispose();
   }
 
@@ -1123,17 +1225,45 @@ class _SearchResultsState extends State<SearchResults> {
   @override
   Widget build(BuildContext context) {
     final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
-    final keyboardIsOpen = widget.keyboardIsOpen;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        if (!isLandscape || !keyboardIsOpen)
-          Padding(
-            padding: EdgeInsets.only(
-              left: 12,
-              right: 12,
-              top: isLandscape ? 4 : 0,
-              bottom: isLandscape ? 4 : 8
+
+    if (_isLoading && _books.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_books.isEmpty && !_isLoading && _error == null) {
+      return const Center(child: Text('No results found'));
+    }
+
+    if (_error != null && _books.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text('Error: $_error'),
+            TextButton(
+              onPressed: () => _fetchPage(1),
+              child: const Text('Retry'),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      controller: _scrollController,
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.only(bottom: 24),
+      itemCount:
+          _books.length +
+          1 +
+          (_isFetchingMore ? 1 : 0) +
+          (_error != null ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: isLandscape ? 4 : 12,
             ),
             child: Text(
               'Searched $_total results',
@@ -1142,119 +1272,97 @@ class _SearchResultsState extends State<SearchResults> {
                 fontWeight: FontWeight.w500,
               ),
             ),
-          ),
-        if (_isLoading && _books.isEmpty)
-          const Center(child: CircularProgressIndicator()),
-        if (_books.isEmpty && !_isLoading && _error == null)
-          const Center(child: Text('No results found')),
-        if (_error != null && _books.isEmpty)
-          Center(
+          );
+        }
+
+        int i = index - 1;
+
+        if (i == _books.length && _isFetchingMore) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (i == _books.length && _error != null) {
+          return Padding(
+            padding: const EdgeInsets.all(16),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text('Error: $_error'),
                 TextButton(
-                  onPressed: () => _fetchPage(1),
+                  onPressed: () => _fetchPage(_currentPage + 1),
                   child: const Text('Retry'),
                 ),
               ],
             ),
-          ),
-        if (_books.isNotEmpty || _isFetchingMore)
-          Flexible(
-            child: ListView.builder(
-              controller: _scrollController,
-              itemCount:
-                  _books.length +
-                  (_isFetchingMore ? 1 : 0) +
-                  (_error != null ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == _books.length && _isFetchingMore) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (index == _books.length && _error != null) {
-                  return Column(
-                    children: [
-                      Text('Error: $_error'),
-                      TextButton(
-                        onPressed: () => _fetchPage(_currentPage + 1),
-                        child: const Text('Retry'),
-                      ),
-                    ],
-                  );
-                }
-                final book = _books[index];
-                return GestureDetector(
-                  behavior: HitTestBehavior.translucent,
-                  onTap: () {
-                    pushWithNavBar(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => BookPage(biblioId: book.biblioId),
-                      ),
-                    );
-                  },
-                  child: SizedBox(
-                    height: 178,
+          );
+        }
+        final book = _books[i];
+        return GestureDetector(
+          behavior: HitTestBehavior.translucent,
+          onTap: () {
+            Navigator.of(context).push(
+              slideRoute(BookPage(biblioId: book.biblioId)),
+            );
+          },
+          child: SizedBox(
+            height: 178,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(14),
+                    child: BookCoverImage(
+                      coverUrl: book.coverUrl,
+                      width: 108,
+                      height: 162,
+                      fit: BoxFit.fill,
+                    ),
+                  ),
+                  Expanded(
                     child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Row(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(14),
-                            child: BookCoverImage(
-                              coverUrl: book.coverUrl,
-                              width: 108,
-                              height: 162,
-                              fit: BoxFit.fill,
+                          Text(
+                            book.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 18,
                             ),
                           ),
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    book.title,
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 18,
-                                    ),
-                                  ),
-                                  Text(book.authors.isNotEmpty ? book.authors[0] : ''),
-                                  const Expanded(child: SizedBox()),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        book.availableCopies > 0
-                                            ? 'Available'
-                                            : 'Unavailable',
-                                        style: TextStyle(
-                                          color: book.availableCopies > 0
-                                              ? Colors.green
-                                              : Colors.red,
-                                        ),
-                                      ),
-                                      const Spacer(),
-                                      const Text('View More'),
-                                    ],
-                                  ),
-                                ],
+                          Text(book.authors.isNotEmpty ? book.authors[0] : ''),
+                          const Expanded(child: SizedBox()),
+                          Row(
+                            children: [
+                              Text(
+                                book.availableCopies > 0
+                                    ? 'Available'
+                                    : 'Unavailable',
+                                style: TextStyle(
+                                  color: book.availableCopies > 0
+                                      ? Colors.green
+                                      : Colors.red,
+                                ),
                               ),
-                            ),
+                              const Spacer(),
+                              const Text('View More'),
+                            ],
                           ),
                         ],
                       ),
                     ),
                   ),
-                );
-              },
+                ],
+              ),
             ),
           ),
-      ],
+        );
+      },
     );
   }
 }

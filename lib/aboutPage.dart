@@ -110,7 +110,7 @@ class _AboutPageState extends State<AboutPage> {
                       TextStyle(fontSize: 40, fontWeight: FontWeight.w700)),
             ),
             Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
               child: Text(
                 "Since 1961, the Central Library at NIT Calicut has been a cornerstone of academic excellence — housing over 1.35 lakh books and serving a community of 8,000+ users.",
                 textAlign: TextAlign.center,

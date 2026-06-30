@@ -72,7 +72,7 @@ class _BookPageState extends State<BookPage> {
   return Scaffold(
     appBar: AppBar(),
     body: Padding(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -171,7 +171,7 @@ class _BookPageState extends State<BookPage> {
     // e.g. landscape orientation, where BookDetailCard's fixed-height image
     // plus text easily exceeds the available height.
     body: SingleChildScrollView(
-      padding: EdgeInsets.all(12),
+      padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -325,15 +325,13 @@ class _BookDetailCardState extends State<BookDetailCard> {
     final book = widget.book;
     pushWithNavBar(
       context,
-      MaterialPageRoute(
-        builder: (context) => PlaceHoldScreen(
-          biblioId: book.biblioId,
-          title: book.title,
-          author: book.authors.isNotEmpty
-              ? book.authors.join(", ")
-              : "Unknown author",
-        ),
-      ),
+      slideRoute(PlaceHoldScreen(
+        biblioId: book.biblioId,
+        title: book.title,
+        author: book.authors.isNotEmpty
+            ? book.authors.join(", ")
+            : "Unknown author",
+      )),
     );
   }
 
