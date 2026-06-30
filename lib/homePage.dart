@@ -17,29 +17,8 @@ import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:provider/provider.dart';
 import 'package:library_nitc/browsePage.dart';
 import 'package:library_nitc/bookCoverImage.dart';
+import 'package:library_nitc/globals.dart';
 
-Route _slideUpRoute(Widget page) {
-  return PageRouteBuilder(
-    pageBuilder: (context, animation, secondaryAnimation) => page,
-    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      const begin = Offset(0, 0.5);
-      const end = Offset.zero;
-      const curve = Curves.easeOutCubic;
-
-      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
-      var fadeTween = Tween(begin: 0.0, end: 1.0).chain(CurveTween(curve: curve));
-
-      return SlideTransition(
-        position: animation.drive(tween),
-        child: FadeTransition(
-          opacity: animation.drive(fadeTween),
-          child: child,
-        ),
-      );
-    },
-    transitionDuration: const Duration(milliseconds: 350),
-  );
-}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -392,7 +371,7 @@ class _MainSearchBarState extends State<MainSearchBar> with SingleTickerProvider
         readOnly: true,
         showCursor: false,
         onTap: () {
-          Navigator.of(context, rootNavigator: true).push(_slideUpRoute(const BrowsePage()));
+          Navigator.of(context, rootNavigator: true).push(slideRoute(const BrowsePage()));
         },
         style: TextStyle(
           fontSize: 16,
@@ -416,7 +395,7 @@ class _MainSearchBarState extends State<MainSearchBar> with SingleTickerProvider
             children: [
               IconButton(
                 onPressed: () {
-                  Navigator.of(context, rootNavigator: true).push(_slideUpRoute(const BrowsePage()));
+                  Navigator.of(context, rootNavigator: true).push(slideRoute(const BrowsePage()));
                 },
                 icon: const Icon(
                   Icons.auto_awesome,
@@ -433,14 +412,14 @@ class _MainSearchBarState extends State<MainSearchBar> with SingleTickerProvider
             borderRadius: BorderRadius.circular(28),
             borderSide: BorderSide(
               color: Theme.of(context).colorScheme.outlineVariant,
-              width: 1,
+              width: 0.2,
             ),
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(28),
             borderSide: const BorderSide(
               color: Color(0xFF6A1B9A),
-              width: 2,
+              width: 0.5,
             ),
           ),
           filled: true,
@@ -522,9 +501,7 @@ class StatWidget extends StatelessWidget {
                     onPressed: () {
                       pushWithNavBar(
                         context,
-                        MaterialPageRoute(
-                          builder: (_) => BookPage(biblioId: firstBook.biblioId),
-                        ),
+                        slideRoute(BookPage(biblioId: firstBook.biblioId)),
                       );
                     },
                     child: Text("View", style: TextStyle(color: Colors.purple)),
@@ -639,9 +616,7 @@ class HorizontalBookScroll extends StatelessWidget {
           onTap: () {
             pushWithNavBar(
               context,
-              MaterialPageRoute(
-                builder: (_) => BookPage(biblioId: book.biblioId),
-              ),
+              slideRoute(BookPage(biblioId: book.biblioId)),
             );
           },
           child: SizedBox(
@@ -894,7 +869,7 @@ class OpacNewArrivals extends StatelessWidget {
         return GestureDetector(
           onTap: () => pushWithNavBar(
             context,
-            MaterialPageRoute(builder: (_) => BookPage(biblioId: book.biblioId)),
+            slideRoute(BookPage(biblioId: book.biblioId)),
           ),
           child: SizedBox(
             width: 145,
@@ -1110,9 +1085,7 @@ class _BrowseCatalogState extends State<BrowseCatalog> {
           onTap:
               () => pushWithNavBar(
                 context,
-                MaterialPageRoute(
-                  builder: (_) => BookPage(biblioId: book.biblioId),
-                ),
+                slideRoute(BookPage(biblioId: book.biblioId)),
               ),
           child: SizedBox(
             width: 145,
@@ -1328,11 +1301,8 @@ class _SearchResultsState extends State<SearchResults> {
         return GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () {
-            pushWithNavBar(
-              context,
-              MaterialPageRoute(
-                builder: (context) => BookPage(biblioId: book.biblioId),
-              ),
+            Navigator.of(context).push(
+              slideRoute(BookPage(biblioId: book.biblioId)),
             );
           },
           child: SizedBox(
