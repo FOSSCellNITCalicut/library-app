@@ -1,5 +1,6 @@
 import 'dart:convert';
-import 'package:http/http.dart' as http;
+import 'package:library_nitc/cache/cache_policy.dart';
+import 'package:library_nitc/cache/cached_http_client.dart';
 import 'package:library_nitc/models/book_arrangement.dart';
 import 'package:library_nitc/models/business_hours.dart';
 import 'package:library_nitc/models/daily_quote.dart';
@@ -44,15 +45,23 @@ class OpacHomeData {
 class OpacHomeService {
   final String baseUrl;
 
-  OpacHomeService({this.baseUrl = _kBaseUrl});
+  // P1 — 12-hr TTL + stale-while-revalidate (most expensive backend call).
+  late final CachedHttpClient _client;
+
+  OpacHomeService({this.baseUrl = _kBaseUrl}) {
+    _client = CachedHttpClient(namespace: 'opac_home', policy: CachePolicy.opacHome);
+  }
 
   Future<OpacHomeData> fetchHomeData() async {
     final uri = Uri.parse('$baseUrl/api/v1/opac/home');
-    final response = await http.get(uri);
-    if (response.statusCode < 200 || response.statusCode >= 300) {
-      throw Exception('HTTP ${response.statusCode}: ${response.body}');
-    }
+    final response = await _client.get(uri);
     final decoded = jsonDecode(response.body) as Map<String, dynamic>;
     return OpacHomeData.fromJson(decoded);
+  }
+
+  /// Force a fresh fetch — e.g. on explicit pull-to-refresh.
+  Future<OpacHomeData> fetchHomeDataFresh() async {
+    _client.invalidateAll();
+    return fetchHomeData();
   }
 }
