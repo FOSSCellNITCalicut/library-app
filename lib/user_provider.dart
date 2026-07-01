@@ -206,6 +206,10 @@ class UserProvider extends ChangeNotifier {
   UserProfile? profile;
   bool profileLoading = false;
   String? profileError;
+  // P3 — session-level cache: fetch once at login, then only re-fetch if
+  // more than [_profileStaleDuration] has passed (e.g. on app foreground).
+  DateTime? _profileFetchedAt;
+  static const _profileStaleDuration = Duration(hours: 1);
 
   double? outstandingFine;
   bool finesLoading = false;
@@ -219,7 +223,15 @@ class UserProvider extends ChangeNotifier {
   bool holdsLoading = false;
   String? holdsError;
 
-  Future<void> fetchProfile(String accessToken) async {
+  Future<void> fetchProfile(String accessToken, {bool forceRefresh = false}) async {
+    // Return cached profile if it's still fresh, unless a force-refresh is requested.
+    if (!forceRefresh &&
+        profile != null &&
+        _profileFetchedAt != null &&
+        DateTime.now().difference(_profileFetchedAt!) < _profileStaleDuration) {
+      return;
+    }
+
     profileLoading = true;
     profileError = null;
     notifyListeners();
@@ -232,12 +244,23 @@ class UserProvider extends ChangeNotifier {
         throw 'Server error (${response.statusCode})';
       }
       profile = UserProfile.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+      _profileFetchedAt = DateTime.now();
     } catch (e) {
       profileError = 'Could not load your profile.';
     } finally {
       profileLoading = false;
       notifyListeners();
     }
+  }
+
+  /// Clears all cached user data — call on logout.
+  void clearUserData() {
+    profile = null;
+    _profileFetchedAt = null;
+    outstandingFine = null;
+    fineHistory = null;
+    holds = null;
+    notifyListeners();
   }
 
   Future<void> fetchFines(String accessToken) async {
@@ -379,7 +402,7 @@ class UserProvider extends ChangeNotifier {
       message: data['message'] as String? ?? 'Could not renew.',
     );
     if (result.success) {
-      await fetchProfile(accessToken);
+      await fetchProfile(accessToken, forceRefresh: true);
     }
     return result;
   }
