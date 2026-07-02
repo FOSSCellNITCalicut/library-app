@@ -51,7 +51,7 @@ class _ProgrammeSelectionPageState extends State<ProgrammeSelectionPage> {
             return const Center(child: Text('No curriculum data available'));
           }
 
-          final programmes = provider.data!['programmes'] as Map<String, dynamic>;
+          final programmes = provider.data!['Programmes'] as Map<String, dynamic>;
           final entries = programmes.entries.toList();
 
           return ListView.builder(
@@ -59,10 +59,8 @@ class _ProgrammeSelectionPageState extends State<ProgrammeSelectionPage> {
             itemCount: entries.length,
             itemBuilder: (context, index) {
               final entry = entries[index];
-              final key = entry.key;
-              final prog = entry.value as Map<String, dynamic>;
-              final name = prog['name'] as String? ?? key;
-              final branches = prog['branches'] as Map<String, dynamic>? ?? {};
+              final programmeName = entry.key;
+              final branches = entry.value as Map<String, dynamic>;
 
               return Card(
                 elevation: 2,
@@ -77,7 +75,7 @@ class _ProgrammeSelectionPageState extends State<ProgrammeSelectionPage> {
                     child: const Icon(Icons.school, color: Color(0xFF6A1B9A)),
                   ),
                   title: Text(
-                    name,
+                    programmeName,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                   ),
                   subtitle: Text('${branches.length} branches'),
@@ -86,8 +84,7 @@ class _ProgrammeSelectionPageState extends State<ProgrammeSelectionPage> {
                     Navigator.of(context).push(
                       MaterialPageRoute(
                         builder: (_) => BranchSelectionPage(
-                          programmeKey: key,
-                          programmeName: name,
+                          programmeName: programmeName,
                           branches: branches,
                         ),
                       ),
@@ -104,12 +101,10 @@ class _ProgrammeSelectionPageState extends State<ProgrammeSelectionPage> {
 }
 
 class BranchSelectionPage extends StatelessWidget {
-  final String programmeKey;
   final String programmeName;
   final Map<String, dynamic> branches;
 
   const BranchSelectionPage({
-    required this.programmeKey,
     required this.programmeName,
     required this.branches,
     super.key,
@@ -132,10 +127,8 @@ class BranchSelectionPage extends StatelessWidget {
               itemCount: entries.length,
               itemBuilder: (context, index) {
                 final entry = entries[index];
-                final key = entry.key;
-                final branch = entry.value as Map<String, dynamic>;
-                final name = branch['name'] as String? ?? key;
-                final courses = branch['courses'] as Map<String, dynamic>? ?? {};
+                final branchName = entry.key;
+                final courses = entry.value as Map<String, dynamic>;
 
                 return Card(
                   elevation: 2,
@@ -150,7 +143,7 @@ class BranchSelectionPage extends StatelessWidget {
                       child: const Icon(Icons.account_balance, color: Color(0xFF6A1B9A)),
                     ),
                     title: Text(
-                      name,
+                      branchName,
                       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
                     ),
                     subtitle: Text('${courses.length} courses'),
@@ -159,7 +152,7 @@ class BranchSelectionPage extends StatelessWidget {
                       Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => CourseSelectionPage(
-                            branchName: name,
+                            branchName: branchName,
                             courses: courses,
                           ),
                         ),
