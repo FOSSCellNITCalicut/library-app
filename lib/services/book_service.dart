@@ -1,6 +1,6 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:library_nitc/models/book_details.dart' show BookAvailability, BookDetail;
+import 'package:library_nitc/models/book_details.dart' show BookAvailability, BookDetail, CatalogBooksResponse;
 
 const String kBaseUrl = 'http://localhost:8000';
 
@@ -57,6 +57,16 @@ class BookService {
       return BookDetail.fromJson(jsonDecode(res.body));
     } else {
       throw Exception('Detail failed: ${res.body}');
+    }
+  }
+
+  Future<CatalogBooksResponse> fetchCatalogBooks(String courseId) async {
+    final uri = Uri.parse('$baseUrl/api/v1/catalog/$courseId');
+    final res = await http.get(uri);
+    if (res.statusCode == 200) {
+      return CatalogBooksResponse.fromJson(jsonDecode(res.body));
+    } else {
+      throw Exception('Catalog fetch failed: ${res.body}');
     }
   }
 
