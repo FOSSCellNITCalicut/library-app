@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:library_nitc/catalogBooksPage.dart';
 import 'package:library_nitc/curriculum_provider.dart';
 
 class ProgrammeSelectionPage extends StatefulWidget {
@@ -229,10 +230,12 @@ class CourseSelectionPage extends StatelessWidget {
                       ),
                     ),
                     onTap: () {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Books for $courseName coming soon'),
-                          behavior: SnackBarBehavior.floating,
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => CatalogBooksPage(
+                            courseId: courseId,
+                            courseName: courseName,
+                          ),
                         ),
                       );
                     },
