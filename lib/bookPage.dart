@@ -10,6 +10,7 @@ import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:library_nitc/services/book_service.dart';
 import 'package:library_nitc/models/book_details.dart';
 import 'package:library_nitc/bookCoverImage.dart';
+import 'package:library_nitc/similarBooksPage.dart';
 
 // Public OPAC URL, matches the backend's default KOHA_OPAC_URL.
 const String _opacBaseUrl = 'https://opac.nitc.ac.in';
@@ -267,6 +268,29 @@ class _BookPageState extends State<BookPage> {
           SizedBox(height: 12),
 
           PublisherInfoCard(book: b),
+
+          if (b.searchString != null && b.searchString!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 16),
+              child: SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      slideRoute(SimilarBooksPage(query: b.searchString!)),
+                    );
+                  },
+                  icon: const Icon(Icons.bookmark),
+                  label: const Text("View Similar Books"),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF624F9A),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     ),
