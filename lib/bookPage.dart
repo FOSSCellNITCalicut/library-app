@@ -6,7 +6,6 @@ import 'package:library_nitc/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'package:library_nitc/main.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:library_nitc/services/book_service.dart';
 import 'package:library_nitc/models/book_details.dart';
@@ -19,7 +18,20 @@ class BookPage extends StatefulWidget {
   final int biblioId;
   final BookDetail? book;
 
-  const BookPage({required this.biblioId, this.book, super.key});
+  /// Lightweight preview data from the home page (NewArrival).
+  /// Used to show title/cover immediately while the full detail loads.
+  final String? previewTitle;
+  final String? previewCoverUrl;
+  final List<String>? previewAuthors;
+
+  const BookPage({
+    required this.biblioId,
+    this.book,
+    this.previewTitle,
+    this.previewCoverUrl,
+    this.previewAuthors,
+    super.key,
+  });
 
   @override
   State<StatefulWidget> createState() => _BookPageState();
@@ -34,6 +46,7 @@ class _BookPageState extends State<BookPage> {
   BookDetail? book;
   bool loading = true;
   bool hasError = false;
+  String _errorMessage = 'Unable to load book details.';
 
   @override
   void initState() {
@@ -42,27 +55,83 @@ class _BookPageState extends State<BookPage> {
   }
 
   Future<void> load() async {
-  try {
-    setState(() {
-      loading = true;
-      hasError = false;
-    });
+    try {
+      setState(() {
+        loading = true;
+        hasError = false;
+      });
 
-    //await Future.delayed(const Duration(seconds: 2));  //to see loading page
+      BookDetail data = widget.book ?? await _service.getBookDetail(widget.biblioId);
 
-    final data = widget.book ?? await _service.getBookDetail(widget.biblioId);
+      // If the DB row has no real title yet (metadata worker hasn't synced it),
+      // overlay the preview data from the home page so the user sees something
+      // meaningful instead of "Unknown Title".
+      if (data.title == 'Unknown Title' || data.title.isEmpty) {
+        data = BookDetail(
+          biblioId: data.biblioId,
+          title: widget.previewTitle ?? data.title,
+          authors: data.authors.isEmpty ? (widget.previewAuthors ?? []) : data.authors,
+          isbn: data.isbn,
+          publisher: data.publisher,
+          publishedYear: data.publishedYear,
+          edition: data.edition,
+          description: data.description,
+          coverUrl: data.coverUrl ?? widget.previewCoverUrl,
+          categories: data.categories,
+          totalCopies: data.totalCopies,
+          availableCopies: data.availableCopies,
+          libCopies: data.libCopies,
+          matCopies: data.matCopies,
+          availabilitySyncedAt: data.availabilitySyncedAt,
+          copies: data.copies,
+        );
+      }
 
-    setState(() {
-      book = data;
-      loading = false;
-    });
-  } catch (e) {
-    setState(() {
-      loading = false;
-      hasError = true;
-    });
+      setState(() {
+        book = data;
+        loading = false;
+      });
+    } catch (e) {
+      debugPrint('[BookPage] load() failed for biblioId=${widget.biblioId}: $e');
+      // If we at least have preview data, show it rather than a full error screen.
+      if (widget.previewTitle != null) {
+        setState(() {
+          book = BookDetail(
+            biblioId: widget.biblioId,
+            title: widget.previewTitle!,
+            authors: widget.previewAuthors ?? [],
+            isbn: const [],
+            publisher: '',
+            publishedYear: 0,
+            edition: null,
+            description: null,
+            coverUrl: widget.previewCoverUrl,
+            categories: const [],
+            totalCopies: 0,
+            availableCopies: 0,
+            libCopies: 0,
+            matCopies: 0,
+            availabilitySyncedAt: null,
+            copies: const [],
+          );
+          loading = false;
+        });
+      } else if (widget.book != null) {
+        setState(() {
+          book = widget.book;
+          loading = false;
+        });
+      } else {
+        setState(() {
+          loading = false;
+          hasError = true;
+          _errorMessage = e.toString().contains('offline')
+              ? 'You\'re offline and this book hasn\'t been cached yet.\nConnect to load details.'
+              : 'Unable to load book details.';
+        });
+      }
+    }
   }
-}
   @override
 
   Widget build(BuildContext context) {
@@ -135,7 +204,7 @@ class _BookPageState extends State<BookPage> {
             Icon(Icons.sentiment_dissatisfied,
                 size: 80, color: Colors.grey),
             SizedBox(height: 12),
-            Text("Failed to load book details"),
+            Text(_errorMessage, textAlign: TextAlign.center),
             SizedBox(height: 12),
             ElevatedButton(
               onPressed: () {

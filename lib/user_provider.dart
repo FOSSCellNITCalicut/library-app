@@ -2,6 +2,10 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:library_nitc/cache/cache_policy.dart';
+import 'package:library_nitc/cache/cache_store.dart';
+import 'package:library_nitc/cache/cached_http_client.dart';
+import 'package:library_nitc/globals.dart' show appCacheStore;
 
 // Matches auth_provider.dart -- localhost alias for the Android emulator.
 const String _backendBaseUrl = 'http://localhost:8000';
@@ -72,10 +76,13 @@ class UserProfile {
       rollNo: json['roll_no'] as String,
       name: json['name'] as String,
       email: json['email'] as String?,
-      loanSummary: LoanSummary.fromJson(json['loan_summary'] as Map<String, dynamic>),
-      checkedOutBooks: (json['checked_out_books'] as List<dynamic>? ?? [])
-          .map((e) => CheckedOutBook.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      loanSummary: LoanSummary.fromJson(
+        json['loan_summary'] as Map<String, dynamic>,
+      ),
+      checkedOutBooks:
+          (json['checked_out_books'] as List<dynamic>? ?? [])
+              .map((e) => CheckedOutBook.fromJson(e as Map<String, dynamic>))
+              .toList(),
     );
   }
 }
@@ -85,7 +92,7 @@ class FineHistoryItem {
   final String date;
   final String status;
 
-  FineHistoryItem({required this.amount, required this.date, required this.status});
+  FineHistoryItem({required this.amount, required this.date, required this.status,});
 
   factory FineHistoryItem.fromJson(Map<String, dynamic> json) {
     return FineHistoryItem(
@@ -101,7 +108,11 @@ class PickupBranch {
   final String name;
   final bool isDefault;
 
-  PickupBranch({required this.code, required this.name, required this.isDefault});
+  PickupBranch({
+    required this.code,
+    required this.name,
+    required this.isDefault,
+  });
 
   factory PickupBranch.fromJson(Map<String, dynamic> json) {
     return PickupBranch(
@@ -121,9 +132,10 @@ class HoldForm {
   factory HoldForm.fromJson(Map<String, dynamic> json) {
     return HoldForm(
       holdable: json['holdable'] as bool? ?? false,
-      branches: (json['branches'] as List<dynamic>? ?? [])
-          .map((e) => PickupBranch.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      branches:
+          (json['branches'] as List<dynamic>? ?? [])
+              .map((e) => PickupBranch.fromJson(e as Map<String, dynamic>))
+              .toList(),
     );
   }
 }
@@ -197,6 +209,7 @@ class PlaceHoldResult {
 
   PlaceHoldResult({required this.success, required this.message});
 }
+
 /// Fetches the data behind the Profile and Fines pages.
 ///
 /// The three fetches (profile / fines / fines history) are independent --
@@ -206,6 +219,10 @@ class UserProvider extends ChangeNotifier {
   UserProfile? profile;
   bool profileLoading = false;
   String? profileError;
+  // P3 — session-level cache: fetch once at login, then only re-fetch if
+  // more than [_profileStaleDuration] has passed (e.g. on app foreground).
+  DateTime? _profileFetchedAt;
+  static const _profileStaleDuration = Duration(hours: 1);
 
   double? outstandingFine;
   bool finesLoading = false;
@@ -219,7 +236,51 @@ class UserProvider extends ChangeNotifier {
   bool holdsLoading = false;
   String? holdsError;
 
-  Future<void> fetchProfile(String accessToken) async {
+  late final CachedHttpClient _finesClient;
+  late final CachedHttpClient _holdsClient;
+  late final CachedHttpClient _bookStatusClient;
+  late final CachedHttpClient _holdFormClient;
+
+  UserProvider({http.Client? httpClient, CacheStore? cacheStore}) {
+    final store = cacheStore ?? appCacheStore;
+    _finesClient = CachedHttpClient(
+      namespace: 'user_fines',
+      policy: CachePolicy.userFines,
+      httpClient: httpClient,
+      cacheStore: store,
+    );
+    _holdsClient = CachedHttpClient(
+      namespace: 'user_holds',
+      policy: CachePolicy.userHolds,
+      httpClient: httpClient,
+      cacheStore: store,
+    );
+    _bookStatusClient = CachedHttpClient(
+      namespace: 'book_status',
+      policy: CachePolicy.bookStatus,
+      httpClient: httpClient,
+      cacheStore: store,
+    );
+    _holdFormClient = CachedHttpClient(
+      namespace: 'hold_form',
+      policy: CachePolicy.holdForm,
+      httpClient: httpClient,
+      cacheStore: store,
+    );
+  }
+
+  Future<void> fetchProfile(
+    String accessToken, {
+    bool forceRefresh = false,
+  }) async {
+    // Return cached profile if it's still fresh, unless a force-refresh is requested.
+    if (!forceRefresh &&
+        profile != null &&
+        _profileFetchedAt != null &&
+        DateTime.now().difference(_profileFetchedAt!) < _profileStaleDuration) {
+      return;
+    }
+
     profileLoading = true;
     profileError = null;
     notifyListeners();
@@ -231,7 +292,10 @@ class UserProvider extends ChangeNotifier {
       if (response.statusCode != 200) {
         throw 'Server error (${response.statusCode})';
       }
-      profile = UserProfile.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+      profile = UserProfile.fromJson(
+        jsonDecode(response.body) as Map<String, dynamic>,
+      );
+      _profileFetchedAt = DateTime.now();
     } catch (e) {
       profileError = 'Could not load your profile.';
     } finally {
@@ -240,12 +304,22 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
+  /// Clears all cached user data — call on logout.
+  void clearUserData() {
+    profile = null;
+    _profileFetchedAt = null;
+    outstandingFine = null;
+    fineHistory = null;
+    holds = null;
+    notifyListeners();
+  }
+
   Future<void> fetchFines(String accessToken) async {
     finesLoading = true;
     finesError = null;
     notifyListeners();
     try {
-      final response = await http.get(
+      final response = await _finesClient.get(
         Uri.parse('$_backendBaseUrl/api/v1/user/fines'),
         headers: {'Authorization': 'Bearer $accessToken'},
       );
@@ -275,9 +349,10 @@ class UserProvider extends ChangeNotifier {
         throw 'Server error (${response.statusCode})';
       }
       final data = jsonDecode(response.body) as Map<String, dynamic>;
-      fineHistory = (data['items'] as List<dynamic>? ?? [])
-          .map((e) => FineHistoryItem.fromJson(e as Map<String, dynamic>))
-          .toList();
+      fineHistory =
+          (data['items'] as List<dynamic>? ?? [])
+              .map((e) => FineHistoryItem.fromJson(e as Map<String, dynamic>))
+              .toList();
     } catch (e) {
       historyError = 'Could not load your fine history.';
     } finally {
@@ -291,21 +366,23 @@ class UserProvider extends ChangeNotifier {
   /// renewal counts for the in-app renew dialog.
   /// Throws on any failure; callers should treat that as "not borrowed".
   Future<BookStatus> fetchBookStatus(String accessToken, int biblioId) async {
-    final response = await http.get(
+    final response = await _bookStatusClient.get(
       Uri.parse('$_backendBaseUrl/api/v1/user/book-status/$biblioId'),
       headers: {'Authorization': 'Bearer $accessToken'},
     );
     if (response.statusCode != 200) {
       throw 'Server error (${response.statusCode})';
     }
-    return BookStatus.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
+    return BookStatus.fromJson(
+      jsonDecode(response.body) as Map<String, dynamic>,
+    );
   }
 
   /// One-off lookup for PlaceHoldScreen: which pickup branches are offered
   /// and whether Koha will accept a hold on this book at all.
   /// Throws on any failure; callers should show a "try the OPAC website" state.
   Future<HoldForm> fetchHoldForm(String accessToken, int biblioId) async {
-    final response = await http.get(
+    final response = await _holdFormClient.get(
       Uri.parse('$_backendBaseUrl/api/v1/user/holds/$biblioId/form'),
       headers: {'Authorization': 'Bearer $accessToken'},
     );
@@ -318,7 +395,11 @@ class UserProvider extends ChangeNotifier {
   /// Submits the hold. Never throws on a Koha-side rejection -- that comes
   /// back as PlaceHoldResult(success: false, message: ...) so the caller can
   /// show Koha's actual reason instead of a generic error.
-  Future<PlaceHoldResult> placeHold(String accessToken, int biblioId, String branchCode) async {
+  Future<PlaceHoldResult> placeHold(
+    String accessToken,
+    int biblioId,
+    String branchCode,
+  ) async {
     final response = await http.post(
       Uri.parse('$_backendBaseUrl/api/v1/user/holds/$biblioId'),
       headers: {
@@ -331,10 +412,12 @@ class UserProvider extends ChangeNotifier {
       throw 'Server error (${response.statusCode})';
     }
     final data = jsonDecode(response.body) as Map<String, dynamic>;
-    return PlaceHoldResult(
+    final result = PlaceHoldResult(
       success: data['success'] as bool? ?? false,
       message: data['message'] as String? ?? 'Could not place hold.',
     );
+    _holdsClient.invalidateAll();
+    return result;
   }
 
   Future<void> fetchHolds(String accessToken) async {
@@ -342,7 +425,7 @@ class UserProvider extends ChangeNotifier {
     holdsError = null;
     notifyListeners();
     try {
-      final response = await http.get(
+      final response = await _holdsClient.get(
         Uri.parse('$_backendBaseUrl/api/v1/user/holds'),
         headers: {'Authorization': 'Bearer $accessToken'},
       );
@@ -350,9 +433,10 @@ class UserProvider extends ChangeNotifier {
         throw 'Server error (${response.statusCode})';
       }
       final data = jsonDecode(response.body) as Map<String, dynamic>;
-      holds = (data['items'] as List<dynamic>? ?? [])
-          .map((e) => HoldItem.fromJson(e as Map<String, dynamic>))
-          .toList();
+      holds =
+          (data['items'] as List<dynamic>? ?? [])
+              .map((e) => HoldItem.fromJson(e as Map<String, dynamic>))
+              .toList();
     } catch (e) {
       holdsError = 'Could not load your holds.';
     } finally {
@@ -379,7 +463,8 @@ class UserProvider extends ChangeNotifier {
       message: data['message'] as String? ?? 'Could not renew.',
     );
     if (result.success) {
-      await fetchProfile(accessToken);
+      _bookStatusClient.invalidateAll();
+      await fetchProfile(accessToken, forceRefresh: true);
     }
     return result;
   }
@@ -388,7 +473,10 @@ class UserProvider extends ChangeNotifier {
   /// CancelHoldResult(success: false, message: ...) so the caller can show
   /// Koha's actual reason. On success, removes the hold from the cached list
   /// so the screen updates without a full re-fetch.
-  Future<CancelHoldResult> cancelHold(String accessToken, String reserveId) async {
+  Future<CancelHoldResult> cancelHold(
+    String accessToken,
+    String reserveId,
+  ) async {
     final response = await http.post(
       Uri.parse('$_backendBaseUrl/api/v1/user/holds/$reserveId/cancel'),
       headers: {'Authorization': 'Bearer $accessToken'},
@@ -402,6 +490,7 @@ class UserProvider extends ChangeNotifier {
       message: data['message'] as String? ?? 'Could not cancel hold.',
     );
     if (result.success) {
+      _holdsClient.invalidateAll();
       holds = holds?.where((h) => h.reserveId != reserveId).toList();
       notifyListeners();
     }
