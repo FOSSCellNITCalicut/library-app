@@ -3,9 +3,9 @@ import 'package:http/http.dart' as http;
 import 'package:library_nitc/cache/cache_policy.dart';
 import 'package:library_nitc/cache/cache_store.dart';
 import 'package:library_nitc/cache/cached_http_client.dart';
-import 'package:library_nitc/globals.dart' show appCacheStore;
+import 'package:library_nitc/globals.dart' show appCacheStore, kBackendBaseUrl;
 
-const String kBaseUrl = 'http://localhost:8000';
+const String kBaseUrl = kBackendBaseUrl;
 
 class CurriculumService {
   final String baseUrl;

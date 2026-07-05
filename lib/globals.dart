@@ -14,6 +14,13 @@ PersistentTabController persistentTabController = PersistentTabController(initia
 /// services fall back to the in-memory [HttpCache] singleton.
 CacheStore? appCacheStore;
 
+/// Backend base URL. Override at build time with:
+///   flutter run --dart-define=BACKEND_URL=http://192.168.x.x:8000
+const String kBackendBaseUrl = String.fromEnvironment(
+  'BACKEND_URL',
+  defaultValue: 'http://10.0.2.2:8000',
+);
+
 Route slideRoute(Widget page) {
   return PageRouteBuilder(
     pageBuilder: (context, animation, secondaryAnimation) => page,
