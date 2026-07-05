@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:library_nitc/cache/cache_policy.dart';
+import 'package:library_nitc/cache/cache_store.dart';
 import 'package:library_nitc/cache/cached_http_client.dart';
+import 'package:library_nitc/globals.dart' show appCacheStore;
 import 'package:library_nitc/models/book_arrangement.dart';
 import 'package:library_nitc/models/business_hours.dart';
 import 'package:library_nitc/models/daily_quote.dart';
@@ -48,8 +50,8 @@ class OpacHomeService {
   // P1 — 12-hr TTL + stale-while-revalidate (most expensive backend call).
   late final CachedHttpClient _client;
 
-  OpacHomeService({this.baseUrl = _kBaseUrl}) {
-    _client = CachedHttpClient(namespace: 'opac_home', policy: CachePolicy.opacHome);
+  OpacHomeService({this.baseUrl = _kBaseUrl, CacheStore? cacheStore}) {
+    _client = CachedHttpClient(namespace: 'opac_home', policy: CachePolicy.opacHome, cacheStore: cacheStore ?? appCacheStore);
   }
 
   Future<OpacHomeData> fetchHomeData() async {

@@ -66,4 +66,59 @@ class CachePolicy {
     staleWhileRevalidate: false,
     maxEntries: 50,
   );
+
+  /// User fines outstanding balance — changes rarely, refresh every 5 min.
+  static const userFines = CachePolicy(
+    ttl: Duration(minutes: 5),
+    failureTtl: Duration(minutes: 1),
+    staleWhileRevalidate: false,
+  );
+
+  /// Fines history — essentially append-only, safe to cache for 10 min.
+  static const userFinesHistory = CachePolicy(
+    ttl: Duration(minutes: 10),
+    failureTtl: Duration(minutes: 1),
+    staleWhileRevalidate: false,
+  );
+
+  /// Active holds list — changes on hold placement/cancellation.
+  /// Short TTL so mutations stay visible quickly.
+  static const userHolds = CachePolicy(
+    ttl: Duration(minutes: 3),
+    failureTtl: Duration(minutes: 1),
+    staleWhileRevalidate: false,
+  );
+
+  /// Per-book borrow status (is this user currently borrowing this book?).
+  /// Short TTL — shown on BookDetailCard, needs to be fairly fresh.
+  static const bookStatus = CachePolicy(
+    ttl: Duration(minutes: 3),
+    failureTtl: Duration(minutes: 1),
+    staleWhileRevalidate: false,
+    maxEntries: 30,
+  );
+
+  /// Hold form (is the book holdable? which pickup branches?).
+  /// Can be cached for 10 min — branch list changes rarely.
+  static const holdForm = CachePolicy(
+    ttl: Duration(minutes: 10),
+    failureTtl: Duration(minutes: 1),
+    staleWhileRevalidate: false,
+    maxEntries: 20,
+  );
+
+  /// Curriculum version tag — changes only on curriculum updates.
+  /// Long TTL; version check is the first thing CurriculumProvider does.
+  static const curriculumVersion = CachePolicy(
+    ttl: Duration(hours: 6),
+    failureTtl: Duration(minutes: 1),
+    staleWhileRevalidate: false,
+  );
+
+  /// Full curriculum JSON — large payload, changes infrequently.
+  static const curriculum = CachePolicy(
+    ttl: Duration(hours: 6),
+    failureTtl: Duration(minutes: 1),
+    staleWhileRevalidate: false,
+  );
 }

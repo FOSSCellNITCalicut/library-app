@@ -1,7 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:library_nitc/cache/cache_store.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
 PersistentTabController persistentTabController = PersistentTabController(initialIndex: 0);
+
+/// The app-wide persistent cache store, initialised in [main] once
+/// [SqliteCacheStore.open] completes. Services created in widget state classes
+/// (where constructor injection is impractical) read this global so they
+/// automatically benefit from SQLite persistence without changing their call
+/// sites.
+///
+/// Remains null only when SQLite failed to open at startup; in that case
+/// services fall back to the in-memory [HttpCache] singleton.
+CacheStore? appCacheStore;
 
 Route slideRoute(Widget page) {
   return PageRouteBuilder(

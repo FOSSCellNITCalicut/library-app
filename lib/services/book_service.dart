@@ -1,7 +1,9 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:library_nitc/cache/cache_policy.dart';
+import 'package:library_nitc/cache/cache_store.dart';
 import 'package:library_nitc/cache/cached_http_client.dart';
+import 'package:library_nitc/globals.dart' show appCacheStore;
 import 'package:library_nitc/models/book_details.dart' show BookAvailability, BookDetail;
 
 const String kBaseUrl = 'http://localhost:8000';
@@ -15,10 +17,11 @@ class BookService {
   late final CachedHttpClient _searchClient;
   late final CachedHttpClient _detailClient;
 
-  BookService({this.baseUrl = kBaseUrl}) {
-    _browseClient = CachedHttpClient(namespace: 'books_browse', policy: CachePolicy.booksBrowse);
-    _searchClient = CachedHttpClient(namespace: 'books_search', policy: CachePolicy.booksSearch);
-    _detailClient = CachedHttpClient(namespace: 'book_detail', policy: CachePolicy.bookDetail);
+  BookService({this.baseUrl = kBaseUrl, http.Client? httpClient, CacheStore? cacheStore}) {
+    final store = cacheStore ?? appCacheStore;
+    _browseClient = CachedHttpClient(namespace: 'books_browse', policy: CachePolicy.booksBrowse, httpClient: httpClient, cacheStore: store);
+    _searchClient = CachedHttpClient(namespace: 'books_search', policy: CachePolicy.booksSearch, httpClient: httpClient, cacheStore: store);
+    _detailClient = CachedHttpClient(namespace: 'book_detail', policy: CachePolicy.bookDetail, httpClient: httpClient, cacheStore: store);
   }
 
   // ── Browse ─────────────────────────────────────────────────────────────────

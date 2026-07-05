@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:library_nitc/aboutPage.dart';
+import 'package:library_nitc/cache/cache_store.dart';
+import 'package:library_nitc/cache/sqlite_cache_store.dart';
 import 'package:library_nitc/chatBotPage.dart';
 import 'package:library_nitc/generated/intl/messages_all.dart';
 import 'package:library_nitc/homePage.dart';
@@ -33,11 +35,30 @@ Future<void> main() async {
   await findSystemLocale();
   await initializeMessages('en');
   await initializeDateFormatting('en', null);
-  runApp(const MyApp());
+
+  // Initialise persistent cache store. Falls back to the in-memory HttpCache
+  // singleton if SQLite cannot be opened (e.g. permission error on first run).
+  CacheStore? persistentStore;
+  try {
+    persistentStore = await SqliteCacheStore.open();
+    appCacheStore = persistentStore;
+  } on CacheStoreInitException catch (e) {
+    debugPrint('[CACHE INIT] SqliteCacheStore failed, falling back to in-memory: $e');
+  } catch (e) {
+    debugPrint('[CACHE INIT] Unexpected error opening SqliteCacheStore, falling back to in-memory: $e');
+  }
+
+  runApp(MyApp(cacheStore: persistentStore));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  /// Optional persistent cache store. When non-null, all services that accept
+  /// a [CacheStore] parameter will use this SQLite-backed store so responses
+  /// survive app restarts. When null (e.g. SQLite failed to open), services
+  /// fall back to the in-memory [HttpCache] singleton.
+  final CacheStore? cacheStore;
+
+  const MyApp({super.key, this.cacheStore});
 
   @override
   Widget build(BuildContext context) {
@@ -45,8 +66,8 @@ class MyApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => UserProvider()),
-        ChangeNotifierProvider(create: (_) => CurriculumProvider()),
+        ChangeNotifierProvider(create: (_) => UserProvider(cacheStore: cacheStore)),
+        ChangeNotifierProvider(create: (_) => CurriculumProvider(cacheStore: cacheStore)),
       ],
       child: MaterialApp(
         title: 'Flutter Demo',

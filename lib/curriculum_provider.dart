@@ -1,8 +1,13 @@
 import 'package:flutter/foundation.dart';
+import 'package:library_nitc/cache/cache_store.dart';
 import 'package:library_nitc/services/curriculum_service.dart';
 
 class CurriculumProvider extends ChangeNotifier {
-  final CurriculumService _service = CurriculumService();
+  late final CurriculumService _service;
+
+  CurriculumProvider({CacheStore? cacheStore}) {
+    _service = CurriculumService(cacheStore: cacheStore);
+  }
 
   String? _version;
   Map<String, dynamic>? _curriculumData;

@@ -917,7 +917,12 @@ class OpacNewArrivals extends StatelessWidget {
         return GestureDetector(
           onTap: () => pushWithNavBar(
             context,
-            slideRoute(BookPage(biblioId: book.biblioId)),
+            slideRoute(BookPage(
+              biblioId: book.biblioId,
+              previewTitle: book.title,
+              previewCoverUrl: book.coverUrl,
+              previewAuthors: book.authors,
+            )),
           ),
           child: SizedBox(
             width: 145,
@@ -931,24 +936,11 @@ class OpacNewArrivals extends StatelessWidget {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(15),
-                    child: SizedBox(
+                    child: BookCoverImage(
+                      coverUrl: book.coverUrl,
                       width: 145,
                       height: 185,
-                      child: book.coverUrl != null
-                          ? Image.network(
-                              book.coverUrl!,
-                              width: 145,
-                              height: 185,
-                              fit: BoxFit.fill,
-                              errorBuilder: (_, __, ___) => Image.asset(
-                                'assets/stats_book_temp.png',
-                                fit: BoxFit.fill,
-                              ),
-                            )
-                          : Image.asset(
-                              'assets/stats_book_temp.png',
-                              fit: BoxFit.fill,
-                            ),
+                      fit: BoxFit.fill,
                     ),
                   ),
                   SizedBox(height: 4),
