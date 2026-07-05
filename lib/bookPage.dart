@@ -52,11 +52,18 @@ class _BookPageState extends State<BookPage> {
   bool _similarExpanded = false;
   List<BookDetail>? _similarBooks;
   bool _similarLoading = false;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     load();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> load() async {
@@ -151,6 +158,7 @@ class _BookPageState extends State<BookPage> {
           _similarBooks = items;
           _similarLoading = false;
         });
+        _scrollToBottom();
       }
     } catch (_) {
       if (mounted) {
@@ -162,11 +170,29 @@ class _BookPageState extends State<BookPage> {
     }
   }
 
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Future.delayed(const Duration(milliseconds: 250), () {
+        if (!mounted) return;
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        if (maxScroll > 0) {
+          _scrollController.animateTo(
+            maxScroll,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    });
+  }
+
   void _toggleSimilar(String searchString) {
     if (!_similarExpanded && _similarBooks == null) {
       _fetchSimilarBooks(searchString);
     }
     setState(() => _similarExpanded = !_similarExpanded);
+    if (_similarExpanded) _scrollToBottom();
   }
 
   @override
@@ -277,6 +303,7 @@ class _BookPageState extends State<BookPage> {
     // e.g. landscape orientation, where BookDetailCard's fixed-height image
     // plus text easily exceeds the available height.
     body: SingleChildScrollView(
+      controller: _scrollController,
       padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
