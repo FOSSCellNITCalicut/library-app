@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
+import 'package:library_nitc/cache/http_cache.dart';
+import 'package:library_nitc/globals.dart' show appCacheStore;
 
 // Change this to the actual backend URL when deploying.
 const String _backendBaseUrl = 'http://localhost:8000';
@@ -62,12 +64,17 @@ class AuthProvider extends ChangeNotifier {
       value: data['refresh_token'] as String,
     );
 
+    // Wipe cached data from any previous user session.
+    appCacheStore?.clear();
+    HttpCache.instance.clear();
+
     notifyListeners();
   }
 
   /// POST /api/v1/auth/logout
   ///
-  /// Clears in-memory state and deletes the stored refresh token.
+  /// Clears in-memory state, deletes the stored refresh token, and wipes the
+  /// entire HTTP cache so the next user doesn't see stale data from this one.
   Future<void> logout() async {
     if (_accessToken != null) {
       try {
@@ -83,6 +90,9 @@ class AuthProvider extends ChangeNotifier {
     _rollNo = null;
     _name = null;
     await _secureStorage.delete(key: _refreshTokenKey);
+    // Wipe all cached HTTP responses — everything is user-specific.
+    appCacheStore?.clear();
+    HttpCache.instance.clear();
     notifyListeners();
   }
 

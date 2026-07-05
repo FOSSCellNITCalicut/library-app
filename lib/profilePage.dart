@@ -81,12 +81,24 @@ class _ProfileContentState extends State<_ProfileContent> {
   @override
   void initState() {
     super.initState();
-    final token = widget.auth.accessToken;
-    if (token != null) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        context.read<UserProvider>().fetchProfile(token);
-      });
+    _fetchProfile(widget.auth.accessToken);
+  }
+
+  @override
+  void didUpdateWidget(_ProfileContent oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldToken = oldWidget.auth.accessToken;
+    final newToken = widget.auth.accessToken;
+    if (newToken != null && newToken != oldToken) {
+      _fetchProfile(newToken);
     }
+  }
+
+  void _fetchProfile(String? token) {
+    if (token == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      context.read<UserProvider>().fetchProfile(token);
+    });
   }
 
   @override
@@ -176,6 +188,7 @@ class _ProfileContentState extends State<_ProfileContent> {
                       title: const Text('Logout'),
                       tileColor: Colors.purple.shade50,
                       onTap: () async {
+                        context.read<UserProvider>().clearUserData();
                         await context.read<AuthProvider>().logout();
                         // Consumer rebuilds automatically -- no navigation needed.
                       },
