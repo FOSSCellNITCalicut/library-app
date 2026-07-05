@@ -427,6 +427,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
   BookAvailability? _availabilityResult;
   bool _availabilityLoading = false;
   bool _availabilityError = false;
+  bool _descriptionExpanded = false;
 
   @override
   void initState() {
@@ -633,6 +634,47 @@ class _BookDetailCardState extends State<BookDetailCard> {
                   child: Text(c, style: const TextStyle(fontSize: 13)),
                 ),
               ).toList(),
+            ),
+
+          /// DESCRIPTION
+          if (book.description != null && book.description!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    book.description!,
+                    maxLines: _descriptionExpanded ? null : 4,
+                    overflow: _descriptionExpanded
+                        ? null
+                        : TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey.shade700,
+                      height: 1.5,
+                    ),
+                  ),
+                  if (book.description!.length > 200)
+                    GestureDetector(
+                      onTap: () => setState(
+                          () => _descriptionExpanded = !_descriptionExpanded),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          _descriptionExpanded
+                              ? "Show less"
+                              : "Read more",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: const Color(0xFF624F9A),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
 
           const SizedBox(height: 12),
