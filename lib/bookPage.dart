@@ -11,7 +11,7 @@ import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:library_nitc/services/book_service.dart';
 import 'package:library_nitc/models/book_details.dart';
 import 'package:library_nitc/bookCoverImage.dart';
-import 'package:library_nitc/similarBooksPage.dart';
+import 'dart:convert';
 
 // Public OPAC URL, matches the backend's default KOHA_OPAC_URL.
 const String _opacBaseUrl = 'https://opac.nitc.ac.in';
@@ -35,6 +35,10 @@ class _BookPageState extends State<BookPage> {
   BookDetail? book;
   bool loading = true;
   bool hasError = false;
+
+  bool _similarExpanded = false;
+  List<BookDetail>? _similarBooks;
+  bool _similarLoading = false;
 
   @override
   void initState() {
@@ -64,6 +68,37 @@ class _BookPageState extends State<BookPage> {
     });
   }
 }
+  Future<void> _fetchSimilarBooks(String query) async {
+    setState(() => _similarLoading = true);
+    try {
+      final response = await _service.fetchSearch(query, 1, 20);
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      final items = (decoded['items'] as List)
+          .map((e) => BookDetail.fromJson(e as Map<String, dynamic>))
+          .toList();
+      if (mounted) {
+        setState(() {
+          _similarBooks = items;
+          _similarLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _similarBooks = [];
+          _similarLoading = false;
+        });
+      }
+    }
+  }
+
+  void _toggleSimilar(String searchString) {
+    if (!_similarExpanded && _similarBooks == null) {
+      _fetchSimilarBooks(searchString);
+    }
+    setState(() => _similarExpanded = !_similarExpanded);
+  }
+
   @override
 
   Widget build(BuildContext context) {
@@ -201,36 +236,109 @@ class _BookPageState extends State<BookPage> {
           PublisherInfoCard(book: b),
 
           if (b.searchString != null && b.searchString!.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(top: 16),
-              child: SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      slideRoute(SimilarBooksPage(query: b.searchString!)),
-                    );
-                  },
-                  icon: const Icon(Icons.bookmark),
-                  label: const Text("View Similar Books"),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF624F9A),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                ),
-              ),
-            ),
+            _buildSimilarBooksSection(b.searchString!),
         ],
       ),
     ),
   );
 }
 
+  Widget _buildSimilarBooksSection(String searchString) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () => _toggleSimilar(searchString),
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Row(
+              children: [
+                AnimatedRotation(
+                  turns: _similarExpanded ? 0.25 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: const Icon(Icons.chevron_right, size: 20),
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  "View Similar Books",
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                ),
+              ],
+            ),
+          ),
+        ),
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: _similarLoading
+              ? const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : _similarBooks == null || _similarBooks!.isEmpty
+                  ? const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text("No similar books found"),
+                    )
+                  : SizedBox(
+                      height: 200,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        itemCount: _similarBooks!.length,
+                        itemBuilder: (context, i) {
+                          final book = _similarBooks![i];
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                slideRoute(
+                                  BookPage(biblioId: book.biblioId, book: book),
+                                ),
+                              );
+                            },
+                            child: SizedBox(
+                              width: 130,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: BookCoverImage(
+                                        coverUrl: book.coverUrl,
+                                        width: 130,
+                                        height: 150,
+                                        fit: BoxFit.fill,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      book.title,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+          crossFadeState: _similarExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 200),
+        ),
+      ],
+    );
+  }
 }
-
-
 
 class BookDetailCard extends StatefulWidget {
   final BookDetail book;
