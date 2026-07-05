@@ -292,7 +292,7 @@ class _BookPageState extends State<BookPage> {
                             onTap: () {
                               Navigator.of(context).push(
                                 slideRoute(
-                                  BookPage(biblioId: book.biblioId, book: book),
+                                  BookPage(biblioId: book.biblioId),
                                 ),
                               );
                             },
