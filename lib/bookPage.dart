@@ -10,6 +10,7 @@ import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:library_nitc/services/book_service.dart';
 import 'package:library_nitc/models/book_details.dart';
 import 'package:library_nitc/bookCoverImage.dart';
+import 'dart:convert';
 
 // Public OPAC URL, matches the backend's default KOHA_OPAC_URL.
 const String _opacBaseUrl = 'https://opac.nitc.ac.in';
@@ -48,10 +49,21 @@ class _BookPageState extends State<BookPage> {
   bool hasError = false;
   String _errorMessage = 'Unable to load book details.';
 
+  bool _similarExpanded = false;
+  List<BookDetail>? _similarBooks;
+  bool _similarLoading = false;
+  final ScrollController _scrollController = ScrollController();
+
   @override
   void initState() {
     super.initState();
     load();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   Future<void> load() async {
@@ -132,6 +144,57 @@ class _BookPageState extends State<BookPage> {
       }
     }
   }
+
+  Future<void> _fetchSimilarBooks(String query) async {
+    setState(() => _similarLoading = true);
+    try {
+      final response = await _service.fetchSearch(query, 1, 20);
+      final decoded = jsonDecode(response.body) as Map<String, dynamic>;
+      final items = (decoded['items'] as List)
+          .map((e) => BookDetail.fromJson(e as Map<String, dynamic>))
+          .toList();
+      if (mounted) {
+        setState(() {
+          _similarBooks = items;
+          _similarLoading = false;
+        });
+        _scrollToBottom();
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _similarBooks = [];
+          _similarLoading = false;
+        });
+      }
+    }
+  }
+
+  void _scrollToBottom() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      Future.delayed(const Duration(milliseconds: 250), () {
+        if (!mounted) return;
+        final maxScroll = _scrollController.position.maxScrollExtent;
+        if (maxScroll > 0) {
+          _scrollController.animateTo(
+            maxScroll,
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+          );
+        }
+      });
+    });
+  }
+
+  void _toggleSimilar(String searchString) {
+    if (!_similarExpanded && _similarBooks == null) {
+      _fetchSimilarBooks(searchString);
+    }
+    setState(() => _similarExpanded = !_similarExpanded);
+    if (_similarExpanded) _scrollToBottom();
+  }
+
   @override
 
   Widget build(BuildContext context) {
@@ -240,6 +303,7 @@ class _BookPageState extends State<BookPage> {
     // e.g. landscape orientation, where BookDetailCard's fixed-height image
     // plus text easily exceeds the available height.
     body: SingleChildScrollView(
+      controller: _scrollController,
       padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,15 +331,111 @@ class _BookPageState extends State<BookPage> {
           SizedBox(height: 12),
 
           PublisherInfoCard(book: b),
+
+          if (b.searchString != null && b.searchString!.isNotEmpty)
+            _buildSimilarBooksSection(b.searchString!),
         ],
       ),
     ),
   );
 }
 
+  Widget _buildSimilarBooksSection(String searchString) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        InkWell(
+          onTap: () => _toggleSimilar(searchString),
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            child: Row(
+              children: [
+                AnimatedRotation(
+                  turns: _similarExpanded ? 0.25 : 0.0,
+                  duration: const Duration(milliseconds: 200),
+                  child: const Icon(Icons.chevron_right, size: 20),
+                ),
+                const SizedBox(width: 8),
+                const Text(
+                  "View Similar Books",
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                ),
+              ],
+            ),
+          ),
+        ),
+        AnimatedCrossFade(
+          firstChild: const SizedBox.shrink(),
+          secondChild: _similarLoading
+              ? const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : _similarBooks == null || _similarBooks!.isEmpty
+                  ? const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Text("No similar books found"),
+                    )
+                  : SizedBox(
+                      height: 200,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.symmetric(horizontal: 8),
+                        itemCount: _similarBooks!.length,
+                        itemBuilder: (context, i) {
+                          final book = _similarBooks![i];
+                          return GestureDetector(
+                            onTap: () {
+                              Navigator.of(context).push(
+                                slideRoute(
+                                  BookPage(biblioId: book.biblioId),
+                                ),
+                              );
+                            },
+                            child: SizedBox(
+                              width: 130,
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 6),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: BookCoverImage(
+                                        coverUrl: book.coverUrl,
+                                        width: 130,
+                                        height: 150,
+                                        fit: BoxFit.fill,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      book.title,
+                                      maxLines: 2,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+          crossFadeState: _similarExpanded
+              ? CrossFadeState.showSecond
+              : CrossFadeState.showFirst,
+          duration: const Duration(milliseconds: 200),
+        ),
+      ],
+    );
+  }
 }
-
-
 
 class BookDetailCard extends StatefulWidget {
   final BookDetail book;
@@ -294,6 +454,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
   BookAvailability? _availabilityResult;
   bool _availabilityLoading = false;
   bool _availabilityError = false;
+  bool _descriptionExpanded = false;
 
   @override
   void initState() {
@@ -500,6 +661,47 @@ class _BookDetailCardState extends State<BookDetailCard> {
                   child: Text(c, style: const TextStyle(fontSize: 13)),
                 ),
               ).toList(),
+            ),
+
+          /// DESCRIPTION
+          if (book.description != null && book.description!.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    book.description!,
+                    maxLines: _descriptionExpanded ? null : 4,
+                    overflow: _descriptionExpanded
+                        ? null
+                        : TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: Colors.grey.shade700,
+                      height: 1.5,
+                    ),
+                  ),
+                  if (book.description!.length > 200)
+                    GestureDetector(
+                      onTap: () => setState(
+                          () => _descriptionExpanded = !_descriptionExpanded),
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          _descriptionExpanded
+                              ? "Show less"
+                              : "Read more",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: const Color(0xFF624F9A),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
 
           const SizedBox(height: 12),

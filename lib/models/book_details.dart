@@ -19,6 +19,7 @@ class BookDetail {
 
   final DateTime? availabilitySyncedAt;
   final List<BookCopy> copies;
+  final String? searchString;
 
   BookDetail({
     required this.biblioId,
@@ -37,6 +38,7 @@ class BookDetail {
     required this.matCopies,
     required this.availabilitySyncedAt,
     required this.copies,
+    this.searchString,
   });
 
   factory BookDetail.fromJson(Map<String, dynamic> json) {
@@ -70,6 +72,7 @@ class BookDetail {
       copies: (json['copies'] as List<dynamic>? ?? [])
           .map((e) => BookCopy.fromJson(e))
           .toList(),
+      searchString: json['search_string'] as String?,
     );
   }
 
@@ -137,4 +140,20 @@ class BookCopy {
   }
 
   bool get isAvailable => status == 'Available';
+}
+
+class CatalogBooksResponse {
+  final String courseId;
+  final List<BookDetail> books;
+
+  CatalogBooksResponse({required this.courseId, required this.books});
+
+  factory CatalogBooksResponse.fromJson(Map<String, dynamic> json) {
+    return CatalogBooksResponse(
+      courseId: json['course_id'] as String,
+      books: (json['books'] as List<dynamic>)
+          .map((e) => BookDetail.fromJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
 }

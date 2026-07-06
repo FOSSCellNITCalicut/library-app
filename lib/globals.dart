@@ -18,7 +18,7 @@ CacheStore? appCacheStore;
 ///   flutter run --dart-define=BACKEND_URL=http://192.168.x.x:8000
 const String kBackendBaseUrl = String.fromEnvironment(
   'BACKEND_URL',
-  defaultValue: 'http://10.0.2.2:8000',
+  defaultValue: 'http://localhost:8000',
 );
 
 Route slideRoute(Widget page) {
