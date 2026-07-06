@@ -5,6 +5,7 @@ import 'package:library_nitc/bookPage.dart';
 import 'package:library_nitc/holdsPage.dart';
 import 'package:library_nitc/paymentPage.dart';
 import 'package:library_nitc/user_provider.dart';
+import 'package:library_nitc/bookCoverImage.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:provider/provider.dart';
 
@@ -319,47 +320,57 @@ class MyBooksList extends StatelessWidget {
       itemBuilder: (BuildContext context, int index) {
         final book = books[index];
         return GestureDetector(
+          behavior: HitTestBehavior.translucent,
           onTap: () {
             pushScreenWithNavBar(context, BookPage(biblioId: book.biblioId));
           },
-          child: Padding(
-            padding: const EdgeInsets.all(8),
-            child: Row(
-              children: [
-                Flexible(
-                  child: ClipRRect(
+          child: SizedBox(
+            height: 196,
+            child: Padding(
+              padding: const EdgeInsets.all(8),
+              child: Row(
+                children: [
+                  ClipRRect(
                     borderRadius: BorderRadius.circular(14),
-                    child: Image.asset("assets/stats_book_temp.png"),
-                  ),
-                ),
-                Flexible(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          book.title,
-                          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 22),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(book.author, maxLines: 1, overflow: TextOverflow.ellipsis),
-                        Text("Due date: ${book.dueDate}"),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            _RenewButton(book: book),
-                            const Spacer(),
-                            const Text("View More"),
-                            const Icon(Icons.arrow_right_outlined),
-                          ],
-                        ),
-                      ],
+                    child: BookCoverImage(
+                      coverUrl: book.coverUrl,
+                      width: 108,
+                      height: 162,
+                      fit: BoxFit.fill,
                     ),
                   ),
-                ),
-              ],
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            book.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 18,
+                            ),
+                          ),
+                          Text(book.author, maxLines: 1, overflow: TextOverflow.ellipsis),
+                          Text("Due: ${book.dueDate}", maxLines: 1, overflow: TextOverflow.ellipsis),
+                          const Expanded(child: SizedBox()),
+                          Row(
+                            children: [
+                              _RenewButton(book: book),
+                              const Spacer(),
+                              const Text("View More"),
+                              const Icon(Icons.arrow_right_outlined),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
