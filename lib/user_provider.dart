@@ -19,6 +19,7 @@ class CheckedOutBook {
   final String dueDate;
   final int renewalsAllowed;
   final int renewalsRemaining;
+  final String? coverUrl;
 
   CheckedOutBook({
     required this.biblioId,
@@ -28,6 +29,7 @@ class CheckedOutBook {
     required this.dueDate,
     required this.renewalsAllowed,
     required this.renewalsRemaining,
+    this.coverUrl,
   });
 
   factory CheckedOutBook.fromJson(Map<String, dynamic> json) {
@@ -39,6 +41,7 @@ class CheckedOutBook {
       dueDate: json['due_date'] as String? ?? '',
       renewalsAllowed: json['renewals_allowed'] as int? ?? 0,
       renewalsRemaining: json['renewals_remaining'] as int? ?? 0,
+      coverUrl: (json['cover_url'] ?? json['coverImage']) as String?,
     );
   }
 }
