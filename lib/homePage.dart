@@ -78,7 +78,7 @@ class _HomePageState extends State<HomePage> {
       final token = auth.accessToken;
       if (token != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          context.read<UserProvider>().fetchProfile(token);
+          context.read<UserProvider>().fetchProfile(token, authProvider: auth);
         });
       }
     }

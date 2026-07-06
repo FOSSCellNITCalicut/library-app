@@ -78,6 +78,8 @@ class _ProfileContent extends StatefulWidget {
 }
 
 class _ProfileContentState extends State<_ProfileContent> {
+  bool _navigatingToLogin = false;
+
   @override
   void initState() {
     super.initState();
@@ -97,7 +99,7 @@ class _ProfileContentState extends State<_ProfileContent> {
   void _fetchProfile(String? token) {
     if (token == null) return;
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      context.read<UserProvider>().fetchProfile(token);
+      context.read<UserProvider>().fetchProfile(token, authProvider: widget.auth);
     });
   }
 
@@ -117,6 +119,17 @@ class _ProfileContentState extends State<_ProfileContent> {
         }
 
         if (userProvider.profileError != null && profile == null) {
+          final isSessionExpired = userProvider.profileError!.contains('Session expired');
+          if (isSessionExpired) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!_navigatingToLogin && mounted) {
+                _navigatingToLogin = true;
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const AuthScreen()),
+                );
+              }
+            });
+          }
           return Center(
             child: Padding(
               padding: const EdgeInsets.all(32),
@@ -125,13 +138,16 @@ class _ProfileContentState extends State<_ProfileContent> {
                 children: [
                   Text(userProvider.profileError!, textAlign: TextAlign.center),
                   const SizedBox(height: 12),
-                  ElevatedButton(
-                    onPressed: () {
-                      final token = auth.accessToken;
-                      if (token != null) context.read<UserProvider>().fetchProfile(token);
-                    },
-                    child: const Text('Retry'),
-                  ),
+                  if (!isSessionExpired)
+                    ElevatedButton(
+                      onPressed: () {
+                        final token = auth.accessToken;
+                        if (token != null) {
+                          context.read<UserProvider>().fetchProfile(token, authProvider: auth);
+                        }
+                      },
+                      child: const Text('Retry'),
+                    ),
                 ],
               ),
             ),

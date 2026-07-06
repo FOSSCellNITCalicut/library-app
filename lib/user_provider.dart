@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:library_nitc/cache/cache_policy.dart';
 import 'package:library_nitc/cache/cache_store.dart';
 import 'package:library_nitc/cache/cached_http_client.dart';
+import 'package:library_nitc/auth_provider.dart';
 import 'package:library_nitc/globals.dart' show appCacheStore;
 
 // Matches auth_provider.dart -- localhost alias for the Android emulator.
@@ -272,6 +273,7 @@ class UserProvider extends ChangeNotifier {
   Future<void> fetchProfile(
     String accessToken, {
     bool forceRefresh = false,
+    AuthProvider? authProvider,
   }) async {
     // Return cached profile if it's still fresh, unless a force-refresh is requested.
     if (!forceRefresh &&
@@ -289,6 +291,16 @@ class UserProvider extends ChangeNotifier {
         Uri.parse('$_backendBaseUrl/api/v1/user/me'),
         headers: {'Authorization': 'Bearer $accessToken'},
       );
+      if (response.statusCode == 401 && authProvider != null) {
+        final refreshed = await authProvider.tryRefresh();
+        if (refreshed) {
+          return fetchProfile(authProvider.accessToken!, forceRefresh: true, authProvider: authProvider);
+        }
+        profileError = 'Session expired. Please log in again.';
+        profileLoading = false;
+        notifyListeners();
+        return;
+      }
       if (response.statusCode != 200) {
         throw 'Server error (${response.statusCode})';
       }
@@ -297,7 +309,7 @@ class UserProvider extends ChangeNotifier {
       );
       _profileFetchedAt = DateTime.now();
     } catch (e) {
-      profileError = 'Could not load your profile.';
+      profileError ??= 'Could not load your profile.';
     } finally {
       profileLoading = false;
       notifyListeners();
