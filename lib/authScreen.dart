@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:library_nitc/auth_provider.dart';
 import 'package:library_nitc/main.dart';
+import 'package:library_nitc/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 
 class AuthScreen extends StatefulWidget {
@@ -65,7 +66,7 @@ class _AuthScreenState extends State<AuthScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1EAF9),
+      backgroundColor: context.cs.surfaceContainerLow,
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 32),
         child: Column(
@@ -89,7 +90,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   hintText: 'e.g. B23CS001',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: context.cs.surface,
                 ),
               ),
               const SizedBox(height: 16),
@@ -102,7 +103,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   labelText: 'Password',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: context.cs.surface,
                   suffixIcon: IconButton(
                     icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility),
                     onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
@@ -124,7 +125,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     _error!,
-                    style: const TextStyle(color: Colors.red, fontSize: 13),
+                    style: const TextStyle(color: AppColors.unavailable, fontSize: 13),
                   ),
                 ),
               const SizedBox(height: 24),
@@ -134,15 +135,15 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: ElevatedButton(
                   onPressed: _loading ? null : _login,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF624F9A),
-                    foregroundColor: Colors.white,
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: context.cs.surface,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   child: _loading
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 22,
                           width: 22,
-                          child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                          child: CircularProgressIndicator(color: context.cs.surface, strokeWidth: 2),
                         )
                       : const Text('LOGIN', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18)),
                 ),

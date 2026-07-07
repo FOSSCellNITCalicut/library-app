@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:library_nitc/auth_provider.dart';
 import 'package:library_nitc/main.dart';
+import 'package:library_nitc/theme/app_colors.dart';
 import 'package:provider/provider.dart';
 
 class LoadingScreen extends StatefulWidget {
@@ -50,7 +51,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
     return Scaffold(
       body: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(color: Color(0xFF6C4EB4)),
+        decoration: const BoxDecoration(color: AppColors.primary),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
@@ -62,9 +63,9 @@ class _LoadingScreenState extends State<LoadingScreen> {
                 child: Image.asset('assets/main_logo.png'),
               ),
             ),
-            const CircularProgressIndicator(
+            CircularProgressIndicator(
               value: null,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              valueColor: AlwaysStoppedAnimation<Color>(context.cs.surface),
             ),
             SizedBox(
               height: 147,

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:library_nitc/homePage.dart';
+import 'package:library_nitc/theme/app_colors.dart';
 
 enum SearchState {
   initial,
@@ -201,7 +202,7 @@ Future<void> performSearch() async {
                     : Theme.of(context).colorScheme.surfaceContainerLow,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: focusNode.hasFocus ? 0.12 : 0.08),
+                    color: context.cs.onSurface.withValues(alpha: focusNode.hasFocus ? 0.12 : 0.08),
                     blurRadius: focusNode.hasFocus ? 16 : 8,
                     offset: Offset(0, focusNode.hasFocus ? 4 : 2),
                   ),
@@ -227,7 +228,7 @@ Future<void> performSearch() async {
                             icon: const Icon(Icons.arrow_back),
                             onPressed: () => Navigator.of(context).pop(),
                             color: focusNode.hasFocus
-                                ? const Color(0xFF6A1B9A)
+                                ? AppColors.primary
                                 : Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
@@ -260,7 +261,7 @@ Future<void> performSearch() async {
                             const SnackBar(content: Text("AI Search coming soon!")),
                           );
                         },
-                        icon: const Icon(Icons.auto_awesome, color: Color(0xFF6A1B9A)),
+                        icon: const Icon(Icons.auto_awesome, color: AppColors.primary),
                       ),
                     ],
                   ),
@@ -277,7 +278,7 @@ Future<void> performSearch() async {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(28),
-                    borderSide: const BorderSide(color: Color(0xFF6A1B9A), width: 2),
+                    borderSide: const BorderSide(color: AppColors.primary, width: 2),
                   ),
                   filled: true,
                   fillColor: focusNode.hasFocus
@@ -297,7 +298,7 @@ Future<void> performSearch() async {
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
+                      color: context.cs.onSurface.withValues(alpha: 0.1),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -372,11 +373,11 @@ Future<void> performSearch() async {
                           Image.asset('assets/empty.png', height: 200),
                           Transform.translate(
                             offset: const Offset(0, -20),
-                            child: const Column(
+                            child: Column(
                               children: [
                                 Text("No books found", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                                 SizedBox(height: 4),
-                                Text("Try another search", style: TextStyle(color: Colors.grey, fontSize: 16)),
+                                Text("Try another search", style: TextStyle(color: context.cs.outline, fontSize: 16)),
                               ],
                             ),
                           ),
@@ -391,10 +392,10 @@ Future<void> performSearch() async {
                     );
                   }
 
-                  return const Center(
+                  return Center(
                     child: Text(
                       'Search for books above',
-                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                      style: TextStyle(color: context.cs.outline, fontSize: 16),
                     ),
                   );
                 },

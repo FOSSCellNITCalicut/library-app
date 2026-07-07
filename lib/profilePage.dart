@@ -4,6 +4,7 @@ import 'package:library_nitc/authScreen.dart';
 import 'package:library_nitc/bookPage.dart';
 import 'package:library_nitc/holdsPage.dart';
 import 'package:library_nitc/paymentPage.dart';
+import 'package:library_nitc/theme/app_colors.dart';
 import 'package:library_nitc/user_provider.dart';
 import 'package:library_nitc/bookCoverImage.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
@@ -38,12 +39,12 @@ class _LoginPrompt extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.account_circle_outlined, size: 80, color: Colors.black26),
+            Icon(Icons.account_circle_outlined, size: 80, color: context.cs.onSurfaceVariant),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Log in to view your profile, borrowed books, and fines.',
               textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 15, color: Colors.black54),
+              style: TextStyle(fontSize: 15, color: context.cs.onSurfaceVariant),
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -56,8 +57,8 @@ class _LoginPrompt extends StatelessWidget {
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.black,
-                  foregroundColor: Colors.white,
+                  backgroundColor: context.cs.onSurface,
+                  foregroundColor: context.cs.surface,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 child: const Text('LOGIN', style: TextStyle(fontWeight: FontWeight.w700)),
@@ -184,8 +185,8 @@ class _ProfileContentState extends State<_ProfileContent> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('Roll no:', style: TextStyle(fontWeight: FontWeight.w700, color: Colors.black87)),
-                          Text(profile?.rollNo ?? auth.rollNo ?? '', style: const TextStyle(color: Colors.black87, fontSize:20)),
+                          Text('Roll no:', style: TextStyle(fontWeight: FontWeight.w700, color: context.cs.onSurface)),
+                          Text(profile?.rollNo ?? auth.rollNo ?? '', style: TextStyle(color: context.cs.onSurface, fontSize:20)),
                           const SizedBox(height: 10),
                         ],
                       ),
@@ -203,7 +204,7 @@ class _ProfileContentState extends State<_ProfileContent> {
                     ListTile(
                       leading: const Icon(Icons.logout),
                       title: const Text('Logout'),
-                      tileColor: Colors.purple.shade50,
+                      tileColor: context.cs.surfaceContainerLow,
                       onTap: () async {
                         context.read<UserProvider>().clearUserData();
                         await context.read<AuthProvider>().logout();
@@ -213,7 +214,7 @@ class _ProfileContentState extends State<_ProfileContent> {
                     ListTile(
                       leading: const Icon(Icons.monetization_on_outlined),
                       title: const Text("Payment of late dues"),
-                      tileColor: Colors.purple.shade50,
+                      tileColor: context.cs.surfaceContainerLow,
                       onTap: () {
                         pushScreenWithNavBar(context, PaymentPage());
                       },
@@ -221,7 +222,7 @@ class _ProfileContentState extends State<_ProfileContent> {
                     ListTile(
                       leading: const Icon(Icons.monetization_on_outlined),
                       title: const Text('History of late dues'),
-                      tileColor: Colors.purple.shade50,
+                      tileColor: context.cs.surfaceContainerLow,
                       onTap: () {
                         pushScreenWithNavBar(context, PaymentHistoryPage());
                       },
@@ -229,7 +230,7 @@ class _ProfileContentState extends State<_ProfileContent> {
                     ListTile(
                       leading: const Icon(Icons.bookmark_outline),
                       title: const Text('Your Holds'),
-                      tileColor: Colors.purple.shade50,
+                      tileColor: context.cs.surfaceContainerLow,
                       onTap: () {
                         pushScreenWithNavBar(context, HoldsPage());
                       },
@@ -305,10 +306,10 @@ class MyBooksList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (books.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(vertical: 24),
+      return Padding(
+        padding: const EdgeInsets.symmetric(vertical: 24),
         child: Center(
-          child: Text('No books currently borrowed.', style: TextStyle(color: Colors.black54)),
+          child: Text('No books currently borrowed.', style: TextStyle(color: context.cs.onSurfaceVariant)),
         ),
       );
     }

@@ -4,6 +4,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+import 'package:library_nitc/theme/app_colors.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -148,7 +149,7 @@ class NotifItem extends StatelessWidget {
     return ListTile(
       title: Text(notification.message),
       subtitle: Text(truncate(20 ,notification.text)), // TODO change cutoff according to requirements
-      tileColor: notification.read ? Colors.black12 : Colors.deepPurple.shade50,
+      tileColor: notification.read ? context.cs.onSurface.withValues(alpha: 0.38) : context.cs.surfaceContainerLow,
       trailing: Text(formattedTime(DateTime.parse(notification.timeString))),
       onTap: () {
         if(!notification.read){

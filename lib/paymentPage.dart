@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:library_nitc/auth_provider.dart';
+import 'package:library_nitc/theme/app_colors.dart';
 import 'package:library_nitc/user_provider.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:provider/provider.dart';
@@ -134,8 +135,8 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
 
     final items = userProvider.fineHistory ?? [];
     if (items.isEmpty) {
-      return const Center(
-        child: Text('No fine history.', style: TextStyle(color: Colors.black54)),
+      return Center(
+        child: Text('No fine history.', style: TextStyle(color: context.cs.onSurfaceVariant)),
       );
     }
 
@@ -144,7 +145,7 @@ class _PaymentHistoryPageState extends State<PaymentHistoryPage> {
       itemBuilder: (BuildContext context, int index) {
         final item = items[index];
         return Container(
-          color: Colors.purple.shade100,
+          color: context.cs.surfaceContainerLow,
           padding: EdgeInsets.all(12),
           margin: const EdgeInsets.only(bottom: 8),
           child: Row(
@@ -251,7 +252,7 @@ class _PayOnOpacSection extends StatelessWidget {
           hasFine
               ? "Login on the OPAC website and pay your dues there."
               : "You have no outstanding dues.",
-          style: const TextStyle(fontSize: 15, color: Colors.black87),
+          style: TextStyle(fontSize: 15, color: context.cs.onSurface),
         ),
         const SizedBox(height: 16),
         SizedBox(

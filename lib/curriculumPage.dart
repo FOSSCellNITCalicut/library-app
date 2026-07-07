@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:library_nitc/catalogBooksPage.dart';
 import 'package:library_nitc/curriculum_provider.dart';
+import 'package:library_nitc/theme/app_colors.dart';
 
 class ProgrammeSelectionPage extends StatefulWidget {
   const ProgrammeSelectionPage({super.key});
@@ -25,8 +26,8 @@ class _ProgrammeSelectionPageState extends State<ProgrammeSelectionPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Academic Curriculum'),
-        backgroundColor: const Color(0xFF6A1B9A),
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primary,
+        foregroundColor: context.cs.surface,
       ),
       body: Consumer<CurriculumProvider>(
         builder: (context, provider, _) {
@@ -72,8 +73,8 @@ class _ProgrammeSelectionPageState extends State<ProgrammeSelectionPage> {
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                   leading: CircleAvatar(
-                    backgroundColor: const Color(0xFF6A1B9A).withValues(alpha: 0.1),
-                    child: const Icon(Icons.school, color: Color(0xFF6A1B9A)),
+                    backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                    child: const Icon(Icons.school, color: AppColors.primary),
                   ),
                   title: Text(
                     programmeName,
@@ -118,8 +119,8 @@ class BranchSelectionPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(programmeName),
-        backgroundColor: const Color(0xFF6A1B9A),
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primary,
+        foregroundColor: context.cs.surface,
       ),
       body: entries.isEmpty
           ? const Center(child: Text('No branches available'))
@@ -140,8 +141,8 @@ class BranchSelectionPage extends StatelessWidget {
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                     leading: CircleAvatar(
-                      backgroundColor: const Color(0xFF6A1B9A).withValues(alpha: 0.1),
-                      child: const Icon(Icons.account_balance, color: Color(0xFF6A1B9A)),
+                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                      child: const Icon(Icons.account_balance, color: AppColors.primary),
                     ),
                     title: Text(
                       branchName,
@@ -184,8 +185,8 @@ class CourseSelectionPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(branchName),
-        backgroundColor: const Color(0xFF6A1B9A),
-        foregroundColor: Colors.white,
+        backgroundColor: AppColors.primary,
+        foregroundColor: context.cs.surface,
       ),
       body: entries.isEmpty
           ? const Center(child: Text('No courses available'))
@@ -206,8 +207,8 @@ class CourseSelectionPage extends StatelessWidget {
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     leading: CircleAvatar(
-                      backgroundColor: const Color(0xFF6A1B9A).withValues(alpha: 0.1),
-                      child: const Icon(Icons.book_outlined, color: Color(0xFF6A1B9A)),
+                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                      child: const Icon(Icons.book_outlined, color: AppColors.primary),
                     ),
                     title: Text(
                       courseName,
@@ -217,14 +218,14 @@ class CourseSelectionPage extends StatelessWidget {
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6A1B9A).withValues(alpha: 0.1),
+                        color: AppColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         courseId,
                         style: const TextStyle(
                           fontSize: 11,
-                          color: Color(0xFF6A1B9A),
+                          color: AppColors.primary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

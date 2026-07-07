@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:library_nitc/models/book_arrangement.dart';
 import 'package:library_nitc/models/business_hours.dart';
 import 'package:library_nitc/services/opac_home_service.dart';
+import 'package:library_nitc/theme/app_colors.dart';
 
 int _dayIndex(String abbr) {
   const map = {'sun': 7, 'mon': 1, 'tue': 2, 'wed': 3, 'thu': 4, 'fri': 5, 'sat': 6};
@@ -114,7 +115,7 @@ class _AboutPageState extends State<AboutPage> {
               child: Text(
                 "Since 1961, the Central Library at NIT Calicut has been a cornerstone of academic excellence — housing over 1.35 lakh books and serving a community of 8,000+ users.",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.black87, height: 1.5),
+                style: TextStyle(fontSize: 14, color: context.cs.onSurface, height: 1.5),
               ),
             ),
             if (_loading)
@@ -122,14 +123,14 @@ class _AboutPageState extends State<AboutPage> {
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Card(
                   elevation: 0,
-                  color: Colors.deepPurple.shade50,
+                  color: context.cs.surfaceContainerLow,
                   child: Padding(
                     padding: EdgeInsets.all(16),
                     child: Row(
                       children: [
-                        Container(width: 22, height: 22, decoration: BoxDecoration(color: Colors.deepPurple.shade200, borderRadius: BorderRadius.circular(4))),
+                        Container(width: 22, height: 22, decoration: BoxDecoration(color: context.cs.outlineVariant, borderRadius: BorderRadius.circular(4))),
                         SizedBox(width: 12),
-                        Container(height: 14, width: 160, decoration: BoxDecoration(color: Colors.deepPurple.shade200, borderRadius: BorderRadius.circular(4))),
+                        Container(height: 14, width: 160, decoration: BoxDecoration(color: context.cs.outlineVariant, borderRadius: BorderRadius.circular(4))),
                       ],
                     ),
                   ),
@@ -155,7 +156,7 @@ class _AboutPageState extends State<AboutPage> {
               child: Text(
                 "Fully automated with a modern digital infrastructure:",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                style: TextStyle(fontSize: 13, color: context.cs.onSurfaceVariant),
               ),
             ),
             Padding(
@@ -174,7 +175,7 @@ class _AboutPageState extends State<AboutPage> {
               child: Text(
                 "Open daily 8 AM – 12 Midnight  •  Since 1961",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 14, color: context.cs.onSurfaceVariant),
               ),
             ),
             AboutImage(id: 3),
@@ -207,14 +208,14 @@ class _BookArrangementSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.menu_book, color: Colors.deepPurple, size: 22),
+              Icon(Icons.menu_book, color: AppColors.purple, size: 22),
               SizedBox(width: 8),
               Text(
                 "Book Arrangement",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: Colors.deepPurple,
+                  color: AppColors.purple,
                 ),
               ),
             ],
@@ -227,16 +228,16 @@ class _BookArrangementSection extends StatelessWidget {
                 Container(
                   padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
-                    color: Colors.deepPurple.shade50,
+                    color: context.cs.surfaceContainerLow,
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.deepPurple.shade200),
+                    border: Border.all(color: context.cs.outlineVariant),
                   ),
                   child: Text(
                     e.stack,
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
-                      color: Colors.deepPurple.shade700,
+                      color: AppColors.purpleDark,
                     ),
                   ),
                 ),
@@ -247,12 +248,12 @@ class _BookArrangementSection extends StatelessWidget {
                     children: [
                       Text(
                         e.callRange,
-                        style: TextStyle(fontSize: 16, color: Colors.black87),
+                        style: TextStyle(fontSize: 16, color: context.cs.onSurface),
                       ),
                       if (_subjectLabel(e.callRange).isNotEmpty)
                         Text(
                           _subjectLabel(e.callRange),
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          style: TextStyle(fontSize: 12, color: context.cs.onSurfaceVariant),
                         ),
                     ],
                   ),
@@ -280,23 +281,23 @@ class _BusinessHoursSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.access_time, color: Colors.deepPurple, size: 22),
+              Icon(Icons.access_time, color: AppColors.purple, size: 22),
               SizedBox(width: 8),
               Text(
                 "Library Business Hours",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: Colors.deepPurple,
+                  color: AppColors.purple,
                 ),
               ),
               SizedBox(width: 12),
               Container(
                 padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: open ? Colors.green.shade50 : Colors.red.shade50,
+                  color: open ? AppColors.availableSurface : AppColors.unavailableSurface,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: open ? Colors.green : Colors.red, width: 1.5),
+                  border: Border.all(color: open ? AppColors.available : AppColors.unavailable, width: 1.5),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -304,7 +305,7 @@ class _BusinessHoursSection extends StatelessWidget {
                     Icon(
                       open ? Icons.check_circle : Icons.cancel,
                       size: 14,
-                      color: open ? Colors.green : Colors.red,
+                      color: open ? AppColors.available : AppColors.unavailable,
                     ),
                     SizedBox(width: 4),
                     Text(
@@ -312,7 +313,7 @@ class _BusinessHoursSection extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: open ? Colors.green.shade800 : Colors.red.shade800,
+                        color: open ? AppColors.available : AppColors.unavailable,
                       ),
                     ),
                   ],
@@ -333,7 +334,7 @@ class _BusinessHoursSection extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
-                      color: Colors.black87,
+                      color: context.cs.onSurface,
                     ),
                   ),
                 ),
@@ -344,7 +345,7 @@ class _BusinessHoursSection extends StatelessWidget {
                       padding: EdgeInsets.only(bottom: 2),
                       child: Text(
                         line,
-                        style: TextStyle(fontSize: 14, color: Colors.grey[700]),
+                        style: TextStyle(fontSize: 14, color: context.cs.onSurfaceVariant),
                       ),
                     )).toList(),
                   ),
@@ -376,7 +377,7 @@ class _StatCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 0,
-      color: Colors.deepPurple.shade50,
+      color: context.cs.surfaceContainerLow,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: SizedBox(
         width: 100,
@@ -385,19 +386,19 @@ class _StatCard extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: Colors.deepPurple, size: 24),
+              Icon(icon, color: AppColors.purple, size: 24),
               SizedBox(height: 6),
               Text(
                 value,
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 16,
-                  color: Colors.deepPurple.shade800,
+                  color: AppColors.purpleDark,
                 ),
               ),
               Text(
                 label,
-                style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                style: TextStyle(fontSize: 11, color: context.cs.onSurfaceVariant),
               ),
             ],
           ),
@@ -430,14 +431,14 @@ class _DDCReferenceTable extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: Colors.deepPurple, size: 22),
+              Icon(Icons.info_outline, color: AppColors.purple, size: 22),
               SizedBox(width: 8),
               Text(
                 "DDC Classification Reference",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: Colors.deepPurple,
+                  color: AppColors.purple,
                 ),
               ),
             ],
@@ -445,16 +446,16 @@ class _DDCReferenceTable extends StatelessWidget {
           SizedBox(height: 12),
           Container(
             decoration: BoxDecoration(
-              color: Colors.deepPurple.shade50,
+              color: context.cs.surfaceContainerLow,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.deepPurple.shade200),
+              border: Border.all(color: context.cs.outlineVariant),
             ),
             child: Column(
               children: rows.map((r) => Container(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 decoration: BoxDecoration(
                   border: r != rows.last
-                      ? Border(bottom: BorderSide(color: Colors.deepPurple.shade200))
+                      ? Border(bottom: BorderSide(color: context.cs.outlineVariant))
                       : null,
                 ),
                 child: Row(
@@ -466,7 +467,7 @@ class _DDCReferenceTable extends StatelessWidget {
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
-                          color: Colors.deepPurple.shade800,
+                          color: AppColors.purpleDark,
                         ),
                       ),
                     ),
@@ -474,7 +475,7 @@ class _DDCReferenceTable extends StatelessWidget {
                     Expanded(
                       child: Text(
                         r.$2,
-                        style: TextStyle(fontSize: 14, color: Colors.black87),
+                        style: TextStyle(fontSize: 14, color: context.cs.onSurface),
                       ),
                     ),
                   ],
@@ -498,14 +499,14 @@ class _ContactSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.phone_enabled, color: Colors.deepPurple, size: 22),
+              Icon(Icons.phone_enabled, color: AppColors.purple, size: 22),
               SizedBox(width: 8),
               Text(
                 "Reach Us",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: Colors.deepPurple,
+                  color: AppColors.purple,
                 ),
               ),
             ],
@@ -514,9 +515,9 @@ class _ContactSection extends StatelessWidget {
           Container(
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.deepPurple.shade50,
+              color: context.cs.surfaceContainerLow,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.deepPurple.shade200),
+              border: Border.all(color: context.cs.outlineVariant),
             ),
             child: Column(
               children: [
@@ -546,9 +547,9 @@ class _ContactRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: Colors.deepPurple, size: 20),
+        Icon(icon, color: AppColors.purple, size: 20),
         SizedBox(width: 10),
-        Expanded(child: Text(text, style: TextStyle(fontSize: 14, color: Colors.black87))),
+        Expanded(child: Text(text, style: TextStyle(fontSize: 14, color: context.cs.onSurface))),
       ],
     );
   }
