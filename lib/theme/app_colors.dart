@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Colour theme config — review before merge
+// ═══════════════════════════════════════════════════════════════════════════════
+
 abstract final class AppColors {
   // ── Brand ──
   // Unified from original custom hex values:
@@ -44,16 +48,16 @@ abstract final class AppColors {
   static const Color transparent = Color(0x00000000);
 
   // ── Dark Surface Palette ──
-  static const Color darkSurface = Color(0xFF040811);
-  static const Color darkSurfaceElevated = Color(0xFF10131C);
-  static const Color darkSurfaceCard = Color(0xFF10121E);
-  static const Color darkSurfaceBorder = Color(0xFF585C6D);
-  static const Color darkTextPrimary = Color(0xFFD9DADF);
-  static const Color darkTextSecondary = Color(0xFF8A8D98);
-  static const Color darkTextTertiary = Color(0xFF585C6D);
+  static const Color darkSurface = Color(0xFF121212);
+  static const Color darkSurfaceElevated = Color(0xFF1A1C20);
+  static const Color darkSurfaceCard = Color(0xFF1E1E1E);
+  static const Color darkSurfaceBorder = Color(0xFF2C2C2C);
+  static const Color darkTextPrimary = Color(0xFFE0E0E0);
+  static const Color darkTextSecondary = Color(0xFF9E9E9E);
+  static const Color darkTextTertiary = Color(0xFF757575);
   static const Color darkTextPurple = Color(0xFFA094D3);
-  static const Color darkAccentPurple = Color(0xFF5F52A7);
-  static const Color darkProgressPurple = Color(0xFF5F52A7);
+  static const Color darkAccentPurple = Color(0xFF7C6FBF);
+  static const Color darkProgressPurple = Color(0xFF7C6FBF);
 }
 
 extension ThemeContext on BuildContext {

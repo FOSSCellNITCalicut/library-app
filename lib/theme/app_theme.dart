@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Colour theme config — review before merge
+// ═══════════════════════════════════════════════════════════════════════════════
+
 abstract final class AppTheme {
   static ThemeData get light => ThemeData(
         useMaterial3: true,

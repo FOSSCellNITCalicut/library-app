@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// Colour theme config — review before merge
+// ═══════════════════════════════════════════════════════════════════════════════
+
 class ThemeProvider extends ChangeNotifier {
   ThemeMode _mode = ThemeMode.system;
   ThemeMode get mode => _mode;

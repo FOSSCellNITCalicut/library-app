@@ -88,10 +88,11 @@ class _ProgrammeSelectionPageState extends State<ProgrammeSelectionPage> {
                 ),
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  leading: CircleAvatar(
-                    backgroundColor: context.cs.primary.withValues(alpha: 0.1),
-                    child: Icon(Icons.school, color: context.cs.primary),
-                  ),
+                    leading: CircleAvatar(
+                      radius: 26,
+                      backgroundColor: context.cs.primary.withValues(alpha: 0.1),
+                      child: Icon(Icons.school, color: context.cs.primary, size: 28),
+                    ),
                   title: Text(
                     programmeName,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
@@ -156,11 +157,20 @@ class BranchSelectionPage extends StatelessWidget {
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    leading: CircleAvatar(
-                      backgroundColor: context.cs.primary.withValues(alpha: 0.1),
-                      backgroundImage: AssetImage('assets/icons/${_iconCode(courses)}.png'),
+                    leading: Container(
+                      width: 52, height: 52,
+                      decoration: BoxDecoration(
+                        color: context.cs.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        image: courses.keys.isNotEmpty
+                            ? DecorationImage(
+                                image: AssetImage('assets/icons/${_iconCode(courses)}.png'),
+                                fit: BoxFit.contain,
+                              )
+                            : null,
+                      ),
                       child: courses.keys.isEmpty
-                          ? Icon(Icons.account_balance, color: context.cs.primary)
+                          ? Icon(Icons.account_balance, color: context.cs.primary, size: 28)
                           : null,
                     ),
                     title: Text(
@@ -226,8 +236,9 @@ class CourseSelectionPage extends StatelessWidget {
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                     leading: CircleAvatar(
+                      radius: 26,
                       backgroundColor: context.cs.primary.withValues(alpha: 0.1),
-                      child: Icon(Icons.book_outlined, color: context.cs.primary),
+                      child: Icon(Icons.book_outlined, color: context.cs.primary, size: 28),
                     ),
                     title: Text(
                       courseName,
