@@ -60,7 +60,7 @@ class _CatalogBooksPageState extends State<CatalogBooksPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.courseName),
-        backgroundColor: AppColors.primary,
+        backgroundColor: context.cs.primary,
         foregroundColor: context.cs.surface,
       ),
       body: _buildBody(),

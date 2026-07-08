@@ -228,7 +228,7 @@ Future<void> performSearch() async {
                             icon: const Icon(Icons.arrow_back),
                             onPressed: () => Navigator.of(context).pop(),
                             color: focusNode.hasFocus
-                                ? AppColors.primary
+                                ? context.cs.primary
                                 : Theme.of(context).colorScheme.onSurfaceVariant,
                           ),
                         ),
@@ -261,7 +261,7 @@ Future<void> performSearch() async {
                             const SnackBar(content: Text("AI Search coming soon!")),
                           );
                         },
-                        icon: const Icon(Icons.auto_awesome, color: AppColors.primary),
+                        icon: Icon(Icons.auto_awesome, color: context.cs.primary),
                       ),
                     ],
                   ),
@@ -278,7 +278,7 @@ Future<void> performSearch() async {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(28),
-                    borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                    borderSide: BorderSide(color: context.cs.primary, width: 2),
                   ),
                   filled: true,
                   fillColor: focusNode.hasFocus

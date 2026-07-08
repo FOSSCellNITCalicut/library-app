@@ -208,14 +208,14 @@ class _BookArrangementSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.menu_book, color: AppColors.purple, size: 22),
+              Icon(Icons.menu_book, color: context.cs.primary, size: 22),
               SizedBox(width: 8),
               Text(
                 "Book Arrangement",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.purple,
+                  color: context.cs.primary,
                 ),
               ),
             ],
@@ -237,7 +237,7 @@ class _BookArrangementSection extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.w600,
                       fontSize: 14,
-                      color: AppColors.purpleDark,
+                      color: context.cs.primary,
                     ),
                   ),
                 ),
@@ -281,14 +281,14 @@ class _BusinessHoursSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.access_time, color: AppColors.purple, size: 22),
+              Icon(Icons.access_time, color: context.cs.primary, size: 22),
               SizedBox(width: 8),
               Text(
                 "Library Business Hours",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.purple,
+                  color: context.cs.primary,
                 ),
               ),
               SizedBox(width: 12),
@@ -386,14 +386,14 @@ class _StatCard extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, color: AppColors.purple, size: 24),
+              Icon(icon, color: context.cs.primary, size: 24),
               SizedBox(height: 6),
               Text(
                 value,
                 style: TextStyle(
                   fontWeight: FontWeight.w700,
                   fontSize: 16,
-                  color: AppColors.purpleDark,
+                  color: context.cs.primary,
                 ),
               ),
               Text(
@@ -431,14 +431,14 @@ class _DDCReferenceTable extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: AppColors.purple, size: 22),
+              Icon(Icons.info_outline, color: context.cs.primary, size: 22),
               SizedBox(width: 8),
               Text(
                 "DDC Classification Reference",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.purple,
+                  color: context.cs.primary,
                 ),
               ),
             ],
@@ -467,7 +467,7 @@ class _DDCReferenceTable extends StatelessWidget {
                         style: TextStyle(
                           fontWeight: FontWeight.w700,
                           fontSize: 14,
-                          color: AppColors.purpleDark,
+                          color: context.cs.primary,
                         ),
                       ),
                     ),
@@ -499,14 +499,14 @@ class _ContactSection extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.phone_enabled, color: AppColors.purple, size: 22),
+              Icon(Icons.phone_enabled, color: context.cs.primary, size: 22),
               SizedBox(width: 8),
               Text(
                 "Reach Us",
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
-                  color: AppColors.purple,
+                  color: context.cs.primary,
                 ),
               ),
             ],
@@ -547,7 +547,7 @@ class _ContactRow extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: AppColors.purple, size: 20),
+        Icon(icon, color: context.cs.primary, size: 20),
         SizedBox(width: 10),
         Expanded(child: Text(text, style: TextStyle(fontSize: 14, color: context.cs.onSurface))),
       ],

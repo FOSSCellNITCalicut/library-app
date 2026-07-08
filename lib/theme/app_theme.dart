@@ -56,16 +56,18 @@ abstract final class AppTheme {
         colorScheme: ColorScheme.fromSeed(
           seedColor: AppColors.primary,
           brightness: Brightness.dark,
-        ),
-        scaffoldBackgroundColor: const Color(0xFF121212),
-        canvasColor: const Color(0xFF1E1E1E),
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Color(0xFF1E1E1E),
-          foregroundColor: Color(0xFFE0E0E0),
+          surface: AppColors.darkSurface,
+          surfaceContainerLow: AppColors.darkSurfaceCard,
+        ).copyWith(primary: AppColors.darkAccentPurple),
+        scaffoldBackgroundColor: AppColors.darkSurface,
+        canvasColor: AppColors.darkSurfaceElevated,
+        appBarTheme: AppBarTheme(
+          backgroundColor: AppColors.darkSurfaceElevated,
+          foregroundColor: AppColors.darkTextPrimary,
           surfaceTintColor: Colors.transparent,
         ),
         cardTheme: CardThemeData(
-          color: const Color(0xFF2A2A2A),
+          color: AppColors.darkSurfaceCard,
           elevation: 1,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -73,33 +75,35 @@ abstract final class AppTheme {
         ),
         filledButtonTheme: FilledButtonThemeData(
           style: FilledButton.styleFrom(
+            backgroundColor: AppColors.darkAccentPurple,
+            foregroundColor: AppColors.darkTextPrimary,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
             ),
           ),
         ),
         navigationBarTheme: NavigationBarThemeData(
-          backgroundColor: const Color(0xFF1E1E1E),
+          backgroundColor: AppColors.darkSurfaceElevated,
           indicatorColor: AppColors.primary.withValues(alpha: 0.3),
         ),
-        bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-          backgroundColor: Color(0xFF1E1E1E),
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          backgroundColor: AppColors.darkSurfaceElevated,
         ),
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: const Color(0xFF2A2A2A),
+          fillColor: AppColors.darkSurfaceCard,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
           ),
         ),
-        dividerTheme: const DividerThemeData(
-          color: Color(0xFF3A3A3A),
+        dividerTheme: DividerThemeData(
+          color: AppColors.darkSurfaceBorder,
         ),
-        dialogTheme: const DialogThemeData(
-          backgroundColor: Color(0xFF2A2A2A),
+        dialogTheme: DialogThemeData(
+          backgroundColor: AppColors.darkSurfaceCard,
         ),
-        snackBarTheme: const SnackBarThemeData(
-          backgroundColor: Color(0xFF3A3A3A),
+        snackBarTheme: SnackBarThemeData(
+          backgroundColor: AppColors.darkSurfaceBorder,
         ),
       );
 }

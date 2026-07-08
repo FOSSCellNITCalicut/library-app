@@ -103,7 +103,7 @@ class _MainPageState extends State<MainPage> {
       tabs: [
         PersistentTabConfig(
           screen: SafeArea(child: HomePage()),
-          item: ItemConfig(icon: Icon(Icons.home_outlined), title: "HOME", activeForegroundColor: context.cs.onSurface, activeColorSecondary: AppColors.primary.withOpacity(0.15))
+          item: ItemConfig(icon: Icon(Icons.home_outlined), title: "HOME", activeForegroundColor: context.cs.onSurface, activeColorSecondary: context.cs.primary.withValues(alpha: 0.15))
         ),
         PersistentTabConfig(
             screen: SafeArea(child: ChatBotPage()),

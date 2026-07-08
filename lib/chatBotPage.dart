@@ -25,7 +25,7 @@ class _ChatBotPageState extends State<ChatBotPage> {
     final sentChat = BubbleNormal(
       text: msg,
       isSender: true,
-      color: AppColors.purple,
+      color: context.cs.primary,
       textStyle: TextStyle(
           fontSize: 18,
           color: context.cs.surface

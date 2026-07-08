@@ -695,7 +695,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
                               : "Read more",
                           style: TextStyle(
                             fontSize: 14,
-                            color: AppColors.primary,
+                            color: context.cs.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -715,7 +715,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
                     ? FilledButton.icon(
                         onPressed: _renewLoading ? null : _onRenewTap,
                         style: FilledButton.styleFrom(
-                          backgroundColor: AppColors.primary,
+                          backgroundColor: context.cs.primary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
@@ -737,7 +737,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
                         ? FilledButton.icon(
                             onPressed: _onPlaceHoldTap,
                             style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.primary,
+                              backgroundColor: context.cs.primary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
@@ -752,7 +752,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
                         : FilledButton.icon(
                             onPressed: _availabilityLoading ? null : _checkAvailability,
                             style: FilledButton.styleFrom(
-                              backgroundColor: AppColors.primary,
+                              backgroundColor: context.cs.primary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
@@ -821,7 +821,7 @@ class AvailabilitySummary extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 4),
               child: Row(
                 children: [
-                  const Icon(Icons.location_on_outlined, size: 16, color: AppColors.purple),
+                  Icon(Icons.location_on_outlined, size: 16, color: context.cs.primary),
                   const SizedBox(width: 4),
                   RichText(
                     text: TextSpan(
@@ -850,7 +850,7 @@ class AvailabilitySummary extends StatelessWidget {
           if (matTotal > 0)
             Row(
               children: [
-                const Icon(Icons.location_on_outlined, size: 16, color: AppColors.purple),
+                Icon(Icons.location_on_outlined, size: 16, color: context.cs.primary),
                 const SizedBox(width: 4),
                 RichText(
                   text: TextSpan(

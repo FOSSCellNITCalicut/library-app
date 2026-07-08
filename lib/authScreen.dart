@@ -135,7 +135,7 @@ class _AuthScreenState extends State<AuthScreen> {
                 child: ElevatedButton(
                   onPressed: _loading ? null : _login,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
+                    backgroundColor: context.cs.primary,
                     foregroundColor: context.cs.surface,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),

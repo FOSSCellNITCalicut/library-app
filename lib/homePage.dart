@@ -113,7 +113,7 @@ class _HomePageState extends State<HomePage> {
                       child: Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: AppColors.primary,
+                            backgroundColor: context.cs.primary,
                             child: Icon(Icons.school, color: context.cs.surface),
                           ),
                           const SizedBox(width: 16),
@@ -133,7 +133,7 @@ class _HomePageState extends State<HomePage> {
                               ],
                             ),
                           ),
-                          const Icon(Icons.chevron_right, color: AppColors.primary),
+                          Icon(Icons.chevron_right, color: context.cs.primary),
                         ],
                       ),
                     ),
@@ -216,7 +216,7 @@ class _HomePageState extends State<HomePage> {
                 Expanded(child: Text('Could not load library info', style: TextStyle(color: context.cs.onSurfaceVariant))),
                 TextButton(
                   onPressed: _fetchOpacData,
-                  child: Text('Retry', style: TextStyle(color: AppColors.purple)),
+                  child: Text('Retry', style: TextStyle(color: context.cs.primary)),
                 ),
               ],
             ),
@@ -324,13 +324,13 @@ class HomeHeader extends StatelessWidget {
       children: [
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
                 "NITC Library",
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.primary,
+                  color: context.cs.primary,
                 ),
               ),
             ),
@@ -443,7 +443,7 @@ class _MainSearchBarState extends State<MainSearchBar> with SingleTickerProvider
             padding: const EdgeInsets.only(left: 12, right: 8),
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
-              child: const Icon(Icons.search, key: ValueKey('search_home'), color: AppColors.primary),
+              child: Icon(Icons.search, key: ValueKey('search_home'), color: context.cs.primary),
             ),
           ),
           suffixIcon: Row(
@@ -453,9 +453,9 @@ class _MainSearchBarState extends State<MainSearchBar> with SingleTickerProvider
                 onPressed: () {
                   Navigator.of(context, rootNavigator: true).push(slideRoute(const BrowsePage()));
                 },
-                icon: const Icon(
+                icon: Icon(
                   Icons.auto_awesome,
-                  color: AppColors.primary,
+                  color: context.cs.primary,
                 ),
               ),
             ],
@@ -473,8 +473,8 @@ class _MainSearchBarState extends State<MainSearchBar> with SingleTickerProvider
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(28),
-            borderSide: const BorderSide(
-              color: AppColors.primary,
+            borderSide: BorderSide(
+              color: context.cs.primary,
               width: 0.5,
             ),
           ),
@@ -531,7 +531,7 @@ class StatWidget extends StatelessWidget {
                   value: progress,
                   minHeight: 8,
                   backgroundColor: context.cs.surfaceContainerLow,
-                  valueColor: AlwaysStoppedAnimation<Color>(AppColors.purple),
+                  valueColor: AlwaysStoppedAnimation<Color>(context.cs.primary),
                 ),
               ),
               SizedBox(height: 16),
@@ -560,7 +560,7 @@ class StatWidget extends StatelessWidget {
                         slideRoute(BookPage(biblioId: firstBook.biblioId)),
                       );
                     },
-                    child: Text("View", style: TextStyle(color: AppColors.purple)),
+                    child: Text("View", style: TextStyle(color: context.cs.primary)),
                   ),
                 ),
               ],
@@ -830,7 +830,7 @@ class _QuoteCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(width: 5, color: AppColors.purpleAccent),
+            Container(width: 5, color: context.cs.primary),
             Expanded(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(14, 16, 16, 16),
@@ -839,14 +839,14 @@ class _QuoteCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.format_quote, color: AppColors.purple, size: 18),
+                        Icon(Icons.format_quote, color: context.cs.primary, size: 18),
                         SizedBox(width: 6),
                         Text(
                           "Quote of the day",
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: AppColors.purpleAccent,
+                            color: context.cs.primary,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -873,7 +873,7 @@ class _QuoteCard extends StatelessWidget {
                             Container(
                               width: 16,
                               height: 1,
-                              color: AppColors.purpleAccent,
+                              color: context.cs.primary,
                             ),
                             SizedBox(width: 8),
                             Text(
@@ -881,7 +881,7 @@ class _QuoteCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
-                                color: AppColors.purpleDark,
+                                color: context.cs.primary,
                               ),
                             ),
                           ],
@@ -1404,7 +1404,7 @@ class _SearchResultsState extends State<SearchResults> {
                           Icon(
                             Icons.filter_list,
                             size: isLandscape ? 16 : 20,
-                            color: _selectedCategories.isNotEmpty ? AppColors.purple : context.cs.onSurfaceVariant,
+                            color: _selectedCategories.isNotEmpty ? context.cs.primary : context.cs.onSurfaceVariant,
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -1412,7 +1412,7 @@ class _SearchResultsState extends State<SearchResults> {
                             style: TextStyle(
                               fontSize: isLandscape ? 14 : 16,
                               fontWeight: FontWeight.w500,
-                              color: _selectedCategories.isNotEmpty ? AppColors.purple : context.cs.onSurfaceVariant,
+                              color: _selectedCategories.isNotEmpty ? context.cs.primary : context.cs.onSurfaceVariant,
                             ),
                           ),
                           if (_selectedCategories.isNotEmpty) ...[
@@ -1420,7 +1420,7 @@ class _SearchResultsState extends State<SearchResults> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: AppColors.purple,
+                                color: context.cs.primary,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -1668,10 +1668,10 @@ class _CategoryFilterDialogState extends State<_CategoryFilterDialog> {
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                          color: isSelected ? AppColors.purple : context.cs.onSurface,
+                          color: isSelected ? context.cs.primary : context.cs.onSurface,
                         ),
                       ),
-                      activeColor: AppColors.purple,
+                      activeColor: context.cs.primary,
                       checkColor: context.cs.surface,
                       controlAffinity: ListTileControlAffinity.trailing,
                       dense: true,
@@ -1691,7 +1691,7 @@ class _CategoryFilterDialogState extends State<_CategoryFilterDialog> {
               child: FilledButton(
                 onPressed: widget.onApply,
                 style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.purple,
+                  backgroundColor: context.cs.primary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

@@ -51,7 +51,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
     return Scaffold(
       body: Container(
         width: double.infinity,
-        decoration: const BoxDecoration(color: AppColors.primary),
+        decoration: BoxDecoration(color: context.cs.primary),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
