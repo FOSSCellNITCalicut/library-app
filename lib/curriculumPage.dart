@@ -20,6 +20,8 @@ String _iconCode(Map<String, dynamic> courses) {
   return best;
 }
 
+String _codeFromId(String courseId) =>
+    RegExp(r'^[A-Z]+').stringMatch(courseId) ?? '';
 class ProgrammeSelectionPage extends StatefulWidget {
   const ProgrammeSelectionPage({super.key});
 
@@ -235,10 +237,21 @@ class CourseSelectionPage extends StatelessWidget {
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    leading: CircleAvatar(
-                      radius: 26,
-                      backgroundColor: context.cs.primary.withValues(alpha: 0.1),
-                      child: Icon(Icons.book_outlined, color: context.cs.primary, size: 28),
+                    leading: Container(
+                      width: 52, height: 52,
+                      decoration: BoxDecoration(
+                        color: context.cs.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        image: _codeFromId(courseId).isNotEmpty
+                            ? DecorationImage(
+                                image: AssetImage('assets/icons/${_codeFromId(courseId)}.png'),
+                                fit: BoxFit.contain,
+                              )
+                            : null,
+                      ),
+                      child: _codeFromId(courseId).isEmpty
+                          ? Icon(Icons.book_outlined, color: context.cs.primary, size: 28)
+                          : null,
                     ),
                     title: Text(
                       courseName,
