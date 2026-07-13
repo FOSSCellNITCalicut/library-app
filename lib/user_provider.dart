@@ -319,13 +319,25 @@ class UserProvider extends ChangeNotifier {
     }
   }
 
-  /// Clears all cached user data — call on logout.
+  /// Clears all cached user data, call on logout.
   void clearUserData() {
     profile = null;
     _profileFetchedAt = null;
+    profileLoading = false;
+    profileError = null;
+
     outstandingFine = null;
+    finesLoading = false;
+    finesError = null;
+
     fineHistory = null;
+    historyLoading = false;
+    historyError = null;
+
     holds = null;
+    holdsLoading = false;
+    holdsError = null;
+
     notifyListeners();
   }
 
