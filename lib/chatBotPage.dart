@@ -52,7 +52,13 @@ class _ChatBotPageState extends State<ChatBotPage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("Library chatbot")
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Text("Library chatbot", style: TextStyle(
+            fontSize: 20,
+            color: context.cs.primary,
+            fontWeight: FontWeight.bold))
       ),
       body: Column(
         children: [

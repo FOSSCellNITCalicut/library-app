@@ -16,6 +16,9 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
         title: const Text('Your profile', textAlign: TextAlign.center),
       ),
       body: Consumer<AuthProvider>(

@@ -108,7 +108,7 @@ class _AboutPageState extends State<AboutPage> {
             Center(
               child: Text("About Us",
                   style:
-                      TextStyle(fontSize: 40, fontWeight: FontWeight.w700)),
+                      TextStyle(fontSize: 30, fontWeight: FontWeight.w700, color: context.cs.primary)),
             ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
