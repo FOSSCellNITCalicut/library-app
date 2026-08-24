@@ -1,6 +1,7 @@
 import 'package:chat_bubbles/bubbles/bubble_normal.dart';
 import 'package:chat_bubbles/message_bars/message_bar.dart';
 import 'package:flutter/material.dart';
+import 'package:library_nitc/theme/app_colors.dart';
 
 class ChatBotPage extends StatefulWidget{
   @override
@@ -24,16 +25,16 @@ class _ChatBotPageState extends State<ChatBotPage> {
     final sentChat = BubbleNormal(
       text: msg,
       isSender: true,
-      color: Colors.purple,
+      color: context.cs.primary,
       textStyle: TextStyle(
           fontSize: 18,
-          color: Colors.white
+          color: context.cs.surface
       ),
     );
 
     final responseChat = BubbleNormal(
       text: "nodakke yenu illa backendalli", // TODO get response from backend
-      color: Colors.grey.shade300,
+      color: context.cs.outlineVariant,
       isSender: false,
       textStyle: TextStyle(
         fontSize: 18
@@ -51,7 +52,13 @@ class _ChatBotPageState extends State<ChatBotPage> {
     return Scaffold(
       appBar: AppBar(
         centerTitle: true,
-        title: Text("Library chatbot")
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        title: Text("Library chatbot", style: TextStyle(
+            fontSize: 20,
+            color: context.cs.primary,
+            fontWeight: FontWeight.bold))
       ),
       body: Column(
         children: [
@@ -127,7 +134,7 @@ class CustomMessageBar extends MessageBar {
                           horizontal: 12.0,
                           vertical: 14.0,
                         ),
-                        fillColor: Colors.purple.shade50,
+                        fillColor: context.cs.surfaceContainerLow,
                         border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(28),
                             borderSide: BorderSide.none

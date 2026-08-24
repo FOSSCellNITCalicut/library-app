@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:library_nitc/theme/app_colors.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
 class BookSharingCornerPage extends StatelessWidget {
@@ -49,7 +50,7 @@ class DonateBooksCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.purple.shade50,
+      color: context.cs.surfaceContainerLow,
       shape: RoundedRectangleBorder(borderRadius: _borderRadius),
       elevation: 1,
       child: Material(

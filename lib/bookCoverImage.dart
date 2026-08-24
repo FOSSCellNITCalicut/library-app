@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:library_nitc/theme/app_colors.dart';
 
 class BookCoverImage extends StatelessWidget {
   final String? coverUrl;
@@ -84,7 +85,7 @@ class _ShimmerWidgetState extends State<ShimmerWidget>
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(8),
             gradient: LinearGradient(
-              colors: [Colors.grey[300]!, Colors.grey[100]!, Colors.grey[300]!],
+              colors: [context.cs.outlineVariant, context.cs.surface, context.cs.outlineVariant],
               stops: const [0.1, 0.5, 0.9],
               begin: Alignment(-1.0 + _controller.value * 2, -0.3),
               end: Alignment(1.0 + _controller.value * 2, 0.3),

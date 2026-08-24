@@ -10,6 +10,9 @@ import 'package:library_nitc/homePage.dart';
 import 'package:library_nitc/loadingScreen.dart';
 import 'package:library_nitc/notifPage.dart';
 import 'package:library_nitc/profilePage.dart';
+import 'package:library_nitc/theme/app_colors.dart';
+import 'package:library_nitc/theme/app_theme.dart';
+import 'package:library_nitc/theme/theme_provider.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 
 import 'package:intl/intl_standalone.dart' if (dart.library.html) 'package:intl/intl_browser.dart';
@@ -28,7 +31,7 @@ Future<void> main() async {
   ]);
   SystemChrome.setSystemUIOverlayStyle(
     SystemUiOverlayStyle(
-      statusBarColor: Colors.purple.shade50,
+      statusBarColor: Colors.transparent,
       statusBarIconBrightness: Brightness.dark,
     ),
   );
@@ -51,11 +54,9 @@ Future<void> main() async {
   runApp(MyApp(cacheStore: persistentStore));
 }
 
+
+
 class MyApp extends StatelessWidget {
-  /// Optional persistent cache store. When non-null, all services that accept
-  /// a [CacheStore] parameter will use this SQLite-backed store so responses
-  /// survive app restarts. When null (e.g. SQLite failed to open), services
-  /// fall back to the in-memory [HttpCache] singleton.
   final CacheStore? cacheStore;
 
   const MyApp({super.key, this.cacheStore});
@@ -68,28 +69,16 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => AuthProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider(cacheStore: cacheStore)),
         ChangeNotifierProvider(create: (_) => CurriculumProvider(cacheStore: cacheStore)),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
-      child: MaterialApp(
-        title: 'Flutter Demo',
-        theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.purple),
+      child: Consumer<ThemeProvider>(
+        builder: (context, theme, _) => MaterialApp(
+          title: 'Flutter Demo',
+          theme: AppTheme.light,
+          darkTheme: AppTheme.dark,
+          themeMode: theme.mode,
+          home: LoadingScreen(),
         ),
-      home: LoadingScreen(),
       ),
     );
   }
@@ -114,25 +103,25 @@ class _MainPageState extends State<MainPage> {
       tabs: [
         PersistentTabConfig(
           screen: SafeArea(child: HomePage()),
-          item: ItemConfig(icon: Icon(Icons.home_outlined), title: "HOME", activeForegroundColor: Colors.black, activeColorSecondary: Colors.purple.withOpacity(0.15))
+          item: ItemConfig(icon: Icon(Icons.home_outlined), title: "HOME", activeForegroundColor: context.cs.onSurface, activeColorSecondary: context.cs.primary.withValues(alpha: 0.15))
         ),
         PersistentTabConfig(
             screen: SafeArea(child: ChatBotPage()),
-            item: ItemConfig(icon: Icon(Icons.chat_bubble_outline), title: "CHATBOT", activeForegroundColor: Colors.black)
+            item: ItemConfig(icon: Icon(Icons.chat_bubble_outline), title: "CHATBOT", activeForegroundColor: context.cs.onSurface)
         ),
         PersistentTabConfig(
             screen: SafeArea(child: AboutPage()),
-            item: ItemConfig(icon: Icon(Icons.info_outline), title: "ABOUT", activeForegroundColor: Colors.black)
+            item: ItemConfig(icon: Icon(Icons.info_outline), title: "ABOUT", activeForegroundColor: context.cs.onSurface)
         ),
         PersistentTabConfig(
             screen: SafeArea(child: ProfilePage()),
-            item: ItemConfig(icon: Icon(Icons.account_circle_rounded), title: "PROFILE", activeForegroundColor: Colors.black)
+            item: ItemConfig(icon: Icon(Icons.account_circle_rounded), title: "PROFILE", activeForegroundColor: context.cs.onSurface)
         ),
       ],
       navBarBuilder: (navBarConfig) => Style7BottomNavBar(
         navBarConfig: navBarConfig,
         navBarDecoration: NavBarDecoration(
-          color: Colors.purple.shade50,
+          color: context.cs.surfaceContainerLow,
 
         ),
       ) ,

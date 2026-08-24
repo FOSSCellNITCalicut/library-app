@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:library_nitc/theme/app_colors.dart';
 import 'package:library_nitc/bookCoverImage.dart';
 import 'package:library_nitc/bookPage.dart';
 import 'package:library_nitc/globals.dart';
@@ -59,8 +60,8 @@ class _CatalogBooksPageState extends State<CatalogBooksPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.courseName),
-        backgroundColor: const Color(0xFF6A1B9A),
-        foregroundColor: Colors.white,
+        backgroundColor: context.cs.primary,
+        foregroundColor: context.cs.surface,
       ),
       body: _buildBody(),
     );
@@ -76,7 +77,7 @@ class _CatalogBooksPageState extends State<CatalogBooksPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.error_outline, size: 64, color: Colors.grey),
+            Icon(Icons.error_outline, size: 64, color: context.cs.outline),
             const SizedBox(height: 16),
             Text('Error: $_error', textAlign: TextAlign.center),
             const SizedBox(height: 16),
@@ -90,11 +91,11 @@ class _CatalogBooksPageState extends State<CatalogBooksPage> {
     }
 
     if (_books.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.menu_book, size: 64, color: Colors.grey),
+            Icon(Icons.menu_book, size: 64, color: context.cs.outline),
             SizedBox(height: 16),
             Text('No books available for this course'),
           ],
@@ -171,8 +172,8 @@ class _CatalogBooksPageState extends State<CatalogBooksPage> {
                                     : 'Unavailable',
                                 style: TextStyle(
                                   color: book.availableCopies > 0
-                                      ? Colors.green
-                                      : Colors.red,
+                                      ? AppColors.available
+                                      : AppColors.unavailable,
                                 ),
                               ),
                               const Spacer(),

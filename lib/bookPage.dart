@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:library_nitc/auth_provider.dart';
 import 'package:library_nitc/globals.dart';
+import 'package:library_nitc/theme/app_colors.dart';
 import 'package:library_nitc/user_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -214,18 +215,18 @@ class _BookPageState extends State<BookPage> {
               Container(
                 height: 170,
                 width: 128,
-                color: Colors.grey.shade300,
+                color: context.cs.outlineVariant,
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(height: 20, color: Colors.grey.shade300),
+                    Container(height: 20, color: context.cs.outlineVariant),
                     const SizedBox(height: 8),
-                    Container(height: 14, width: 120, color: Colors.grey.shade300),
+                    Container(height: 14, width: 120, color: context.cs.outlineVariant),
                     const SizedBox(height: 8),
-                    Container(height: 14, width: 160, color: Colors.grey.shade300),
+                    Container(height: 14, width: 160, color: context.cs.outlineVariant),
                   ],
                 ),
               )
@@ -235,7 +236,7 @@ class _BookPageState extends State<BookPage> {
           const SizedBox(height: 20),
 
           // HOLDINGS TITLE
-          Container(height: 18, width: 140, color: Colors.grey.shade300),
+          Container(height: 18, width: 140, color: context.cs.outlineVariant),
 
           const SizedBox(height: 10),
 
@@ -246,7 +247,7 @@ class _BookPageState extends State<BookPage> {
               itemBuilder: (_, __) => Container(
                 margin: const EdgeInsets.only(bottom: 10),
                 padding: const EdgeInsets.all(12),
-                color: Colors.grey.shade200,
+                color: context.cs.outlineVariant,
                 height: 60,
               ),
             ),
@@ -265,7 +266,7 @@ class _BookPageState extends State<BookPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.sentiment_dissatisfied,
-                size: 80, color: Colors.grey),
+                size: 80, color: context.cs.outline),
             SizedBox(height: 12),
             Text(_errorMessage, textAlign: TextAlign.center),
             SizedBox(height: 12),
@@ -611,7 +612,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
                       book.authors.isNotEmpty
                           ? "by ${book.authors.join(" | ")}"
                           : "Unknown author",
-                      style: const TextStyle(color: Colors.black54),
+                      style: TextStyle(color: context.cs.onSurfaceVariant),
                     ),
 
                     const SizedBox(height: 6),
@@ -620,14 +621,14 @@ class _BookDetailCardState extends State<BookDetailCard> {
                       text: TextSpan(
                         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                         children: [
-                          const TextSpan(
+                          TextSpan(
                             text: "Status: ",
-                            style: TextStyle(color: Colors.black54),
+                            style: TextStyle(color: context.cs.onSurfaceVariant),
                           ),
                           TextSpan(
                             text: available ? "Available" : "Unavailable",
                             style: TextStyle(
-                              color: available ? Colors.green : Colors.red,
+                              color: available ? AppColors.available : AppColors.unavailable,
                             ),
                           ),
                         ],
@@ -650,8 +651,8 @@ class _BookDetailCardState extends State<BookDetailCard> {
                 (c) => OutlinedButton(
                   onPressed: () {},
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.grey.shade700,
-                    side: BorderSide(color: Colors.grey.shade300),
+                    foregroundColor: context.cs.onSurfaceVariant,
+                    side: BorderSide(color: context.cs.outlineVariant),
                     minimumSize: const Size(0, 40),
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     shape: RoundedRectangleBorder(
@@ -678,7 +679,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
                         : TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 15,
-                      color: Colors.grey.shade700,
+                      color: context.cs.onSurfaceVariant,
                       height: 1.5,
                     ),
                   ),
@@ -694,7 +695,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
                               : "Read more",
                           style: TextStyle(
                             fontSize: 14,
-                            color: const Color(0xFF624F9A),
+                            color: context.cs.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -714,58 +715,58 @@ class _BookDetailCardState extends State<BookDetailCard> {
                     ? FilledButton.icon(
                         onPressed: _renewLoading ? null : _onRenewTap,
                         style: FilledButton.styleFrom(
-                          backgroundColor: const Color(0xFF624F9A),
+                          backgroundColor: context.cs.primary,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                           ),
                         ),
                         icon: _renewLoading
-                            ? const SizedBox(
+                            ? SizedBox(
                                 height: 16,
                                 width: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                child: CircularProgressIndicator(strokeWidth: 2, color: context.cs.surface),
                               )
-                            : const Icon(Icons.redo, color: Colors.white),
-                        label: const Text(
+                            : Icon(Icons.redo, color: context.cs.surface),
+                        label: Text(
                           "Renew",
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.white),
+                          style: TextStyle(color: context.cs.surface),
                         ),
                       )
                     : showPlaceHold
                         ? FilledButton.icon(
                             onPressed: _onPlaceHoldTap,
                             style: FilledButton.styleFrom(
-                              backgroundColor: const Color(0xFF624F9A),
+                              backgroundColor: context.cs.primary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
                             ),
-                            icon: const Icon(Icons.bookmark, color: Colors.white),
-                            label: const Text(
+                            icon: Icon(Icons.bookmark, color: context.cs.surface),
+                            label: Text(
                               "Place Hold",
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white),
+                              style: TextStyle(color: context.cs.surface),
                             ),
                           )
                         : FilledButton.icon(
                             onPressed: _availabilityLoading ? null : _checkAvailability,
                             style: FilledButton.styleFrom(
-                              backgroundColor: const Color(0xFF624F9A),
+                              backgroundColor: context.cs.primary,
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               padding: const EdgeInsets.symmetric(horizontal: 8),
                             ),
                             icon: _availabilityLoading
-                                ? const SizedBox(
+                                ? SizedBox(
                                     height: 16,
                                     width: 16,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                    child: CircularProgressIndicator(strokeWidth: 2, color: context.cs.surface),
                                   )
                                 : Icon(_availabilityResult != null
                                     ? Icons.close
-                                    : Icons.refresh, size: 18, color: Colors.white),
+                                    : Icons.refresh, size: 18, color: context.cs.surface),
                             label: Text(
                               _availabilityError
                                   ? "Failed to fetch\nlatest availability"
@@ -773,7 +774,7 @@ class _BookDetailCardState extends State<BookDetailCard> {
                                       ? "Not Available"
                                       : "Confirm Availability",
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white, fontSize: 16),
+                              style: TextStyle(color: context.cs.surface, fontSize: 16),
                             ),
                           ),
                 ),
@@ -802,11 +803,11 @@ class AvailabilitySummary extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.purple.shade50,
+        color: context.cs.surfaceContainerLow,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.shade200,
+            color: context.cs.outlineVariant,
             blurRadius: 6,
             offset: const Offset(0, 2),
           ),
@@ -820,11 +821,11 @@ class AvailabilitySummary extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 4),
               child: Row(
                 children: [
-                  const Icon(Icons.location_on_outlined, size: 16, color: Colors.purple),
+                  Icon(Icons.location_on_outlined, size: 16, color: context.cs.primary),
                   const SizedBox(width: 4),
                   RichText(
                     text: TextSpan(
-                      style: const TextStyle(fontSize: 13, color: Colors.black87),
+                      style: TextStyle(fontSize: 13, color: context.cs.onSurface),
                       children: [
                         TextSpan(
                           text: "Central Library (LIB) : ",
@@ -836,7 +837,7 @@ class AvailabilitySummary extends StatelessWidget {
                         TextSpan(
                           text: "$libAvailable available",
                           style: TextStyle(
-                            color: libAvailable > 0 ? Colors.green : Colors.red,
+                            color: libAvailable > 0 ? AppColors.available : AppColors.unavailable,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -849,11 +850,11 @@ class AvailabilitySummary extends StatelessWidget {
           if (matTotal > 0)
             Row(
               children: [
-                const Icon(Icons.location_on_outlined, size: 16, color: Colors.purple),
+                Icon(Icons.location_on_outlined, size: 16, color: context.cs.primary),
                 const SizedBox(width: 4),
                 RichText(
                   text: TextSpan(
-                    style: const TextStyle(fontSize: 13, color: Colors.black87),
+                    style: TextStyle(fontSize: 13, color: context.cs.onSurface),
                     children: [
                       TextSpan(
                         text: "Mathematics Library (MAT) : ",
@@ -865,7 +866,7 @@ class AvailabilitySummary extends StatelessWidget {
                       TextSpan(
                         text: "$matAvailable available",
                         style: TextStyle(
-                          color: matAvailable > 0 ? Colors.green : Colors.red,
+                          color: matAvailable > 0 ? AppColors.available : AppColors.unavailable,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -897,7 +898,7 @@ class HoldingsList extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
           decoration: BoxDecoration(
             border: Border(
-              bottom: BorderSide(color: Colors.grey.shade300),
+              bottom: BorderSide(color: context.cs.outlineVariant),
             ),
           ),
           child: Column(
@@ -918,7 +919,7 @@ class HoldingsList extends StatelessWidget {
                     copy.callNumber.isNotEmpty ? copy.callNumber : 'N/A',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey.shade600,
+                      color: context.cs.onSurfaceVariant,
                     ),
                   ),
                 ],
@@ -934,7 +935,7 @@ class HoldingsList extends StatelessWidget {
               const SizedBox(height: 4),
               RichText(
                 text: TextSpan(
-                  style: const TextStyle(fontSize: 14, color: Colors.black87),
+                  style: TextStyle(fontSize: 14, color: context.cs.onSurface),
                   children: [
                     TextSpan(
                       text: copy.branch == 'LIB' ? 'LIB' : 'MAT',
@@ -945,7 +946,7 @@ class HoldingsList extends StatelessWidget {
                       text: copy.isAvailable ? "Available" : "Not Available",
                       style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        color: copy.isAvailable ? Colors.green : Colors.red,
+                        color: copy.isAvailable ? AppColors.available : AppColors.unavailable,
                       ),
                     ),
                   ],
@@ -975,13 +976,13 @@ class PublisherInfoCard extends StatelessWidget {
 
     final rows = <TableRow>[];
     if (hasPublisher) {
-      rows.add(_borderedRow("Publisher", book.publisher));
+      rows.add(_borderedRow(context, "Publisher", book.publisher));
     }
     if (hasYear) {
-      rows.add(_borderedRow("Published Year", book.publishedYear.toString()));
+      rows.add(_borderedRow(context, "Published Year", book.publishedYear.toString()));
     }
     if (hasIsbn) {
-      rows.add(_borderedRow("ISBN", book.isbn.join(", ")));
+      rows.add(_borderedRow(context, "ISBN", book.isbn.join(", ")));
     }
 
     return Column(
@@ -998,7 +999,7 @@ class PublisherInfoCard extends StatelessWidget {
         Container(
           width: double.infinity,
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.black),
+            border: Border.all(color: context.cs.onSurface),
             borderRadius: BorderRadius.circular(4),
           ),
           child: ClipRRect(
@@ -1013,15 +1014,15 @@ class PublisherInfoCard extends StatelessWidget {
                   if (i < rows.length - 1)
                     TableRow(
                       children: [
-                        _cell(rows[i].children[0] as Widget, isLabel: true, hasBorder: true),
-                        _cell(rows[i].children[1] as Widget, isLabel: false, hasBorder: true),
+                        _cell(context, rows[i].children[0] as Widget, isLabel: true, hasBorder: true),
+                        _cell(context, rows[i].children[1] as Widget, isLabel: false, hasBorder: true),
                       ],
                     )
                   else
                     TableRow(
                       children: [
-                        _cell(rows[i].children[0] as Widget, isLabel: true, hasBorder: false),
-                        _cell(rows[i].children[1] as Widget, isLabel: false, hasBorder: false),
+                        _cell(context, rows[i].children[0] as Widget, isLabel: true, hasBorder: false),
+                        _cell(context, rows[i].children[1] as Widget, isLabel: false, hasBorder: false),
                       ],
                     ),
               ],
@@ -1032,26 +1033,26 @@ class PublisherInfoCard extends StatelessWidget {
     );
   }
 
-  TableRow _borderedRow(String label, String value) {
+  TableRow _borderedRow(BuildContext context, String label, String value) {
     return TableRow(
       children: [
         Text(label, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
-        Text(value, style: const TextStyle(fontSize: 14, color: Colors.black87)),
+        Text(value, style: TextStyle(fontSize: 14, color: context.cs.onSurface)),
       ],
     );
   }
 
-  Widget _cell(Widget child, {required bool isLabel, required bool hasBorder}) {
+  Widget _cell(BuildContext context, Widget child, {required bool isLabel, required bool hasBorder}) {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         border: hasBorder
             ? Border(
-                bottom: BorderSide(color: Colors.black),
-                right: isLabel ? BorderSide(color: Colors.black) : BorderSide.none,
+                bottom: BorderSide(color: context.cs.onSurface),
+                right: isLabel ? BorderSide(color: context.cs.onSurface) : BorderSide.none,
               )
             : Border(
-                right: isLabel ? BorderSide(color: Colors.black) : BorderSide.none,
+                right: isLabel ? BorderSide(color: context.cs.onSurface) : BorderSide.none,
               ),
       ),
       child: child,
@@ -1209,7 +1210,7 @@ class _PlaceHoldScreenState extends State<PlaceHoldScreen> {
                           const SizedBox(height: 4),
                           Text(
                             widget.author,
-                            style: const TextStyle(fontSize: 14, color: Colors.black54),
+                            style: TextStyle(fontSize: 14, color: context.cs.onSurfaceVariant),
                             overflow: TextOverflow.ellipsis,
                           ),
                         ],
@@ -1275,10 +1276,10 @@ class _PlaceHoldScreenState extends State<PlaceHoldScreen> {
           child: FilledButton(
             onPressed: _submitting ? null : _confirmHold,
             child: _submitting
-                ? const SizedBox(
+                ? SizedBox(
                     height: 20,
                     width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: context.cs.surface),
                   )
                 : const Text("Confirm hold"),
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:library_nitc/auth_provider.dart';
+import 'package:library_nitc/theme/app_colors.dart';
 import 'package:library_nitc/user_provider.dart';
 import 'package:provider/provider.dart';
 
@@ -102,8 +103,8 @@ class _HoldsPageState extends State<HoldsPage> {
 
     final holds = userProvider.holds ?? [];
     if (holds.isEmpty) {
-      return const Center(
-        child: Text('No active holds.', style: TextStyle(color: Colors.black54)),
+      return Center(
+        child: Text('No active holds.', style: TextStyle(color: context.cs.onSurfaceVariant)),
       );
     }
 
@@ -118,7 +119,7 @@ class _HoldsPageState extends State<HoldsPage> {
           padding: const EdgeInsets.all(12),
           margin: const EdgeInsets.only(bottom: 8),
           decoration: BoxDecoration(
-            color: Colors.purple.shade50,
+            color: context.cs.surfaceContainerLow,
             borderRadius: BorderRadius.circular(8),
           ),
           child: Row(
@@ -134,9 +135,9 @@ class _HoldsPageState extends State<HoldsPage> {
                     ),
                     const SizedBox(height: 4),
                     if (hold.branch.isNotEmpty)
-                      Text("Pickup: ${hold.branch}", style: const TextStyle(color: Colors.black54)),
+                      Text("Pickup: ${hold.branch}", style: TextStyle(color: context.cs.onSurfaceVariant)),
                     if (hold.status.isNotEmpty)
-                      Text("Status: ${hold.status}", style: const TextStyle(color: Colors.black54)),
+                      Text("Status: ${hold.status}", style: TextStyle(color: context.cs.onSurfaceVariant)),
                   ],
                 ),
               ),

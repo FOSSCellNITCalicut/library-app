@@ -2,7 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:library_nitc/catalogBooksPage.dart';
 import 'package:library_nitc/curriculum_provider.dart';
+import 'package:library_nitc/theme/app_colors.dart';
 
+String _iconCode(Map<String, dynamic> courses) {
+  final codes = courses.keys.map((id) => RegExp(r'^[A-Z]+').stringMatch(id) ?? '').toList();
+  final freq = <String, int>{};
+  var best = '';
+  var bestCount = 0;
+  for (final c in codes) {
+    if (c.isEmpty) continue;
+    freq[c] = (freq[c] ?? 0) + 1;
+    if (freq[c]! > bestCount) {
+      bestCount = freq[c]!;
+      best = c;
+    }
+  }
+  return best;
+}
+
+String _codeFromId(String courseId) =>
+    RegExp(r'^[A-Z]+').stringMatch(courseId) ?? '';
 class ProgrammeSelectionPage extends StatefulWidget {
   const ProgrammeSelectionPage({super.key});
 
@@ -25,8 +44,8 @@ class _ProgrammeSelectionPageState extends State<ProgrammeSelectionPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Academic Curriculum'),
-        backgroundColor: const Color(0xFF6A1B9A),
-        foregroundColor: Colors.white,
+        backgroundColor: context.cs.primary,
+        foregroundColor: context.cs.surface,
       ),
       body: Consumer<CurriculumProvider>(
         builder: (context, provider, _) {
@@ -71,10 +90,11 @@ class _ProgrammeSelectionPageState extends State<ProgrammeSelectionPage> {
                 ),
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                  leading: CircleAvatar(
-                    backgroundColor: const Color(0xFF6A1B9A).withValues(alpha: 0.1),
-                    child: const Icon(Icons.school, color: Color(0xFF6A1B9A)),
-                  ),
+                    leading: CircleAvatar(
+                      radius: 26,
+                      backgroundColor: context.cs.primary.withValues(alpha: 0.1),
+                      child: Icon(Icons.school, color: context.cs.primary, size: 28),
+                    ),
                   title: Text(
                     programmeName,
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w500),
@@ -118,8 +138,8 @@ class BranchSelectionPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(programmeName),
-        backgroundColor: const Color(0xFF6A1B9A),
-        foregroundColor: Colors.white,
+        backgroundColor: context.cs.primary,
+        foregroundColor: context.cs.surface,
       ),
       body: entries.isEmpty
           ? const Center(child: Text('No branches available'))
@@ -139,9 +159,21 @@ class BranchSelectionPage extends StatelessWidget {
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                    leading: CircleAvatar(
-                      backgroundColor: const Color(0xFF6A1B9A).withValues(alpha: 0.1),
-                      child: const Icon(Icons.account_balance, color: Color(0xFF6A1B9A)),
+                    leading: Container(
+                      width: 52, height: 52,
+                      decoration: BoxDecoration(
+                        color: context.cs.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        image: courses.keys.isNotEmpty
+                            ? DecorationImage(
+                                image: AssetImage('assets/icons/${_iconCode(courses)}.png'),
+                                fit: BoxFit.contain,
+                              )
+                            : null,
+                      ),
+                      child: courses.keys.isEmpty
+                          ? Icon(Icons.account_balance, color: context.cs.primary, size: 28)
+                          : null,
                     ),
                     title: Text(
                       branchName,
@@ -184,8 +216,8 @@ class CourseSelectionPage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(branchName),
-        backgroundColor: const Color(0xFF6A1B9A),
-        foregroundColor: Colors.white,
+        backgroundColor: context.cs.primary,
+        foregroundColor: context.cs.surface,
       ),
       body: entries.isEmpty
           ? const Center(child: Text('No courses available'))
@@ -205,9 +237,21 @@ class CourseSelectionPage extends StatelessWidget {
                   ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    leading: CircleAvatar(
-                      backgroundColor: const Color(0xFF6A1B9A).withValues(alpha: 0.1),
-                      child: const Icon(Icons.book_outlined, color: Color(0xFF6A1B9A)),
+                    leading: Container(
+                      width: 52, height: 52,
+                      decoration: BoxDecoration(
+                        color: context.cs.primary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(12),
+                        image: _codeFromId(courseId).isNotEmpty
+                            ? DecorationImage(
+                                image: AssetImage('assets/icons/${_codeFromId(courseId)}.png'),
+                                fit: BoxFit.contain,
+                              )
+                            : null,
+                      ),
+                      child: _codeFromId(courseId).isEmpty
+                          ? Icon(Icons.book_outlined, color: context.cs.primary, size: 28)
+                          : null,
                     ),
                     title: Text(
                       courseName,
@@ -217,14 +261,14 @@ class CourseSelectionPage extends StatelessWidget {
                     trailing: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6A1B9A).withValues(alpha: 0.1),
+                        color: context.cs.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
                         courseId,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 11,
-                          color: Color(0xFF6A1B9A),
+                          color: context.cs.primary,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

@@ -12,6 +12,8 @@ import 'package:library_nitc/models/new_arrival.dart';
 import 'package:library_nitc/notifPage.dart';
 import 'package:library_nitc/services/book_service.dart';
 import 'package:library_nitc/services/opac_home_service.dart';
+import 'package:library_nitc/theme/app_colors.dart';
+import 'package:library_nitc/theme/theme_provider.dart';
 import 'package:library_nitc/user_provider.dart';
 import 'package:persistent_bottom_nav_bar_v2/persistent_bottom_nav_bar_v2.dart';
 import 'package:provider/provider.dart';
@@ -74,7 +76,7 @@ class _HomePageState extends State<HomePage> {
     final userProvider = context.watch<UserProvider>();
     final loggedIn = auth.isLoggedIn;
 
-    if (loggedIn && userProvider.profile == null && !userProvider.profileLoading) {
+    if (loggedIn && userProvider.profile == null && !userProvider.profileLoading && userProvider.profileError == null) {
       final token = auth.accessToken;
       if (token != null) {
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -84,7 +86,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: context.cs.surface,
       body: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -95,7 +97,7 @@ class _HomePageState extends State<HomePage> {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 12),
               child: Card(
-                color: Colors.purple.shade50,
+                color: context.cs.surfaceContainerLow,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 elevation: 1,
                 child: Material(
@@ -111,11 +113,11 @@ class _HomePageState extends State<HomePage> {
                       child: Row(
                         children: [
                           CircleAvatar(
-                            backgroundColor: const Color(0xFF6A1B9A),
-                            child: const Icon(Icons.school, color: Colors.white),
+                            backgroundColor: context.cs.primary,
+                            child: Icon(Icons.school, color: context.cs.surface),
                           ),
                           const SizedBox(width: 16),
-                          const Expanded(
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -126,12 +128,12 @@ class _HomePageState extends State<HomePage> {
                                 SizedBox(height: 4),
                                 Text(
                                   "Browse courses by programme",
-                                  style: TextStyle(fontSize: 14, color: Colors.black54),
+                                  style: TextStyle(fontSize: 14, color: context.cs.onSurfaceVariant),
                                 ),
                               ],
                             ),
                           ),
-                          const Icon(Icons.chevron_right, color: Color(0xFF6A1B9A)),
+                          Icon(Icons.chevron_right, color: context.cs.primary),
                         ],
                       ),
                     ),
@@ -205,16 +207,16 @@ class _HomePageState extends State<HomePage> {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Card(
-          color: Colors.purple.shade50,
+          color: context.cs.surfaceContainerLow,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: Padding(
             padding: EdgeInsets.all(16),
             child: Row(
               children: [
-                Expanded(child: Text('Could not load library info', style: TextStyle(color: Colors.grey[700]))),
+                Expanded(child: Text('Could not load library info', style: TextStyle(color: context.cs.onSurfaceVariant))),
                 TextButton(
                   onPressed: _fetchOpacData,
-                  child: Text('Retry', style: TextStyle(color: Colors.purple)),
+                  child: Text('Retry', style: TextStyle(color: context.cs.primary)),
                 ),
               ],
             ),
@@ -237,7 +239,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _buildSkeletonCard(double height) {
     return Card(
-      color: Colors.purple.shade50,
+      color: context.cs.surfaceContainerLow,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         height: height,
@@ -246,11 +248,11 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(height: 14, width: 120, decoration: BoxDecoration(color: Colors.purple.shade100, borderRadius: BorderRadius.circular(4))),
+            Container(height: 14, width: 120, decoration: BoxDecoration(color: context.cs.surfaceContainerLow, borderRadius: BorderRadius.circular(4))),
             SizedBox(height: 12),
-            Container(height: 12, width: double.infinity, decoration: BoxDecoration(color: Colors.purple.shade100, borderRadius: BorderRadius.circular(4))),
+            Container(height: 12, width: double.infinity, decoration: BoxDecoration(color: context.cs.surfaceContainerLow, borderRadius: BorderRadius.circular(4))),
             SizedBox(height: 8),
-            Container(height: 12, width: 180, decoration: BoxDecoration(color: Colors.purple.shade100, borderRadius: BorderRadius.circular(4))),
+            Container(height: 12, width: 180, decoration: BoxDecoration(color: context.cs.surfaceContainerLow, borderRadius: BorderRadius.circular(4))),
           ],
         ),
       ),
@@ -266,7 +268,7 @@ class BookSharingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.purple.shade50,
+      color: context.cs.surfaceContainerLow,
       shape: RoundedRectangleBorder(borderRadius: _borderRadius),
       elevation: 1,
       child: Material(
@@ -316,21 +318,27 @@ class HomeHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = context.watch<ThemeProvider>();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            const Expanded(
+            Expanded(
               child: Text(
                 "NITC Library",
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF6A1B9A),
+                  color: context.cs.primary,
                 ),
               ),
             ),
+            IconButton(
+              onPressed: () => themeProvider.toggle(),
+              icon: Icon(themeProvider.icon, size: 24),
+            ),
+            const SizedBox(width: 4),
             IconButton(
               onPressed: () {
                 pushScreenWithNavBar(context, const Notifpage());
@@ -408,7 +416,7 @@ class _MainSearchBarState extends State<MainSearchBar> with SingleTickerProvider
         color: Theme.of(context).colorScheme.surfaceContainerLow,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: context.cs.onSurface.withValues(alpha: 0.08),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -435,7 +443,7 @@ class _MainSearchBarState extends State<MainSearchBar> with SingleTickerProvider
             padding: const EdgeInsets.only(left: 12, right: 8),
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 200),
-              child: const Icon(Icons.search, key: ValueKey('search_home'), color: Color(0xFF6A1B9A)),
+              child: Icon(Icons.search, key: ValueKey('search_home'), color: context.cs.primary),
             ),
           ),
           suffixIcon: Row(
@@ -445,9 +453,9 @@ class _MainSearchBarState extends State<MainSearchBar> with SingleTickerProvider
                 onPressed: () {
                   Navigator.of(context, rootNavigator: true).push(slideRoute(const BrowsePage()));
                 },
-                icon: const Icon(
+                icon: Icon(
                   Icons.auto_awesome,
-                  color: Color(0xFF6A1B9A),
+                  color: context.cs.primary,
                 ),
               ),
             ],
@@ -465,8 +473,8 @@ class _MainSearchBarState extends State<MainSearchBar> with SingleTickerProvider
           ),
           focusedBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(28),
-            borderSide: const BorderSide(
-              color: Color(0xFF6A1B9A),
+            borderSide: BorderSide(
+              color: context.cs.primary,
               width: 0.5,
             ),
           ),
@@ -506,7 +514,7 @@ class StatWidget extends StatelessWidget {
         Container(
           padding: EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.purple.shade50,
+            color: context.cs.surfaceContainerLow,
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
@@ -522,14 +530,14 @@ class StatWidget extends StatelessWidget {
                 child: LinearProgressIndicator(
                   value: progress,
                   minHeight: 8,
-                  backgroundColor: Colors.purple.shade100,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.purple),
+                  backgroundColor: context.cs.surfaceContainerLow,
+                  valueColor: AlwaysStoppedAnimation<Color>(context.cs.primary),
                 ),
               ),
               SizedBox(height: 16),
               Text(
                 firstBook != null ? "You have to return" : "No books checked out",
-                style: TextStyle(color: Colors.grey[700]),
+                style: TextStyle(color: context.cs.onSurfaceVariant),
               ),
               if (firstBook != null) ...[
                 SizedBox(height: 4),
@@ -540,7 +548,7 @@ class StatWidget extends StatelessWidget {
                 SizedBox(height: 8),
                 Text(
                   firstBook.dueDate,
-                  style: TextStyle(color: Colors.grey.shade700),
+                  style: TextStyle(color: context.cs.onSurfaceVariant),
                 ),
                 SizedBox(height: 12),
                 Align(
@@ -552,7 +560,7 @@ class StatWidget extends StatelessWidget {
                         slideRoute(BookPage(biblioId: firstBook.biblioId)),
                       );
                     },
-                    child: Text("View", style: TextStyle(color: Colors.purple)),
+                    child: Text("View", style: TextStyle(color: context.cs.primary)),
                   ),
                 ),
               ],
@@ -649,7 +657,7 @@ class HorizontalBookScroll extends StatelessWidget {
       return Center(
         child: Text(
           "No items checked out",
-          style: TextStyle(color: Colors.grey[500], fontSize: 14),
+          style: TextStyle(color: context.cs.outline, fontSize: 14),
         ),
       );
     }
@@ -704,7 +712,7 @@ class HorizontalBookScroll extends StatelessWidget {
                     Text(
                       book.dueDate,
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                      style: TextStyle(fontSize: 11, color: context.cs.onSurfaceVariant),
                     ),
                   ],
                 ),
@@ -733,7 +741,7 @@ class _BookJournalToggleState extends State<BookJournalToggle> {
       child: Container(
         padding: EdgeInsets.zero,
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey.shade400, width: 2),
+          border: Border.all(color: context.cs.outlineVariant, width: 2),
           borderRadius: BorderRadius.circular(30),
         ),
         child: Row(
@@ -746,7 +754,7 @@ class _BookJournalToggleState extends State<BookJournalToggle> {
                 padding: EdgeInsets.symmetric(vertical: 10, horizontal: 16),
                 decoration: BoxDecoration(
                   color:
-                      isBooksSelected ? Colors.purple[100] : Colors.transparent,
+                      isBooksSelected ? context.cs.surfaceContainerLow : Colors.transparent,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(30),
                     bottomLeft: Radius.circular(30),
@@ -755,12 +763,12 @@ class _BookJournalToggleState extends State<BookJournalToggle> {
                 child: Row(
                   children: [
                     if (isBooksSelected)
-                      Icon(Icons.check, size: 16, color: Colors.black),
+                      Icon(Icons.check, size: 16, color: context.cs.onSurface),
                     if (isBooksSelected) SizedBox(width: 4),
                     Text(
                       'Books | eBooks',
                       style: TextStyle(
-                        color: Colors.black,
+                        color: context.cs.onSurface,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -777,7 +785,7 @@ class _BookJournalToggleState extends State<BookJournalToggle> {
                 decoration: BoxDecoration(
                   color:
                       !isBooksSelected
-                          ? Colors.purple[100]
+                          ? context.cs.surfaceContainerLow
                           : Colors.transparent,
                   borderRadius: BorderRadius.only(
                     topRight: Radius.circular(30),
@@ -787,12 +795,12 @@ class _BookJournalToggleState extends State<BookJournalToggle> {
                 child: Row(
                   children: [
                     if (!isBooksSelected)
-                      Icon(Icons.check, size: 16, color: Colors.black),
+                      Icon(Icons.check, size: 16, color: context.cs.onSurface),
                     if (!isBooksSelected) SizedBox(width: 4),
                     Text(
                       'E-Journals',
                       style: TextStyle(
-                        color: Colors.black,
+                        color: context.cs.onSurface,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -814,7 +822,7 @@ class _QuoteCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: Colors.purple.shade50,
+      color: context.cs.surfaceContainerLow,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 1,
       clipBehavior: Clip.antiAlias,
@@ -822,7 +830,7 @@ class _QuoteCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Container(width: 5, color: Colors.purple.shade300),
+            Container(width: 5, color: context.cs.primary),
             Expanded(
               child: Padding(
                 padding: EdgeInsets.fromLTRB(14, 16, 16, 16),
@@ -831,14 +839,14 @@ class _QuoteCard extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.format_quote, color: Colors.purple, size: 18),
+                        Icon(Icons.format_quote, color: context.cs.primary, size: 18),
                         SizedBox(width: 6),
                         Text(
                           "Quote of the day",
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w600,
-                            color: Colors.purple.shade400,
+                            color: context.cs.primary,
                             letterSpacing: 0.5,
                           ),
                         ),
@@ -850,7 +858,7 @@ class _QuoteCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontStyle: FontStyle.italic,
-                        color: Colors.black87,
+                        color: context.cs.onSurface,
                         height: 1.5,
                         fontWeight: FontWeight.w400,
                       ),
@@ -865,7 +873,7 @@ class _QuoteCard extends StatelessWidget {
                             Container(
                               width: 16,
                               height: 1,
-                              color: Colors.purple.shade300,
+                              color: context.cs.primary,
                             ),
                             SizedBox(width: 8),
                             Text(
@@ -873,7 +881,7 @@ class _QuoteCard extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
-                                color: Colors.purple.shade600,
+                                color: context.cs.primary,
                               ),
                             ),
                           ],
@@ -1386,9 +1394,9 @@ class _SearchResultsState extends State<SearchResults> {
                         vertical: isLandscape ? 8 : 12,
                       ),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(color: context.cs.outlineVariant),
                         borderRadius: BorderRadius.circular(8),
-                        color: _selectedCategories.isNotEmpty ? Colors.purple.shade50 : Colors.white,
+                        color: _selectedCategories.isNotEmpty ? context.cs.surfaceContainerLow : context.cs.surface,
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -1396,7 +1404,7 @@ class _SearchResultsState extends State<SearchResults> {
                           Icon(
                             Icons.filter_list,
                             size: isLandscape ? 16 : 20,
-                            color: _selectedCategories.isNotEmpty ? Colors.purple : Colors.grey.shade700,
+                            color: _selectedCategories.isNotEmpty ? context.cs.primary : context.cs.onSurfaceVariant,
                           ),
                           const SizedBox(width: 8),
                           Text(
@@ -1404,7 +1412,7 @@ class _SearchResultsState extends State<SearchResults> {
                             style: TextStyle(
                               fontSize: isLandscape ? 14 : 16,
                               fontWeight: FontWeight.w500,
-                              color: _selectedCategories.isNotEmpty ? Colors.purple : Colors.grey.shade700,
+                              color: _selectedCategories.isNotEmpty ? context.cs.primary : context.cs.onSurfaceVariant,
                             ),
                           ),
                           if (_selectedCategories.isNotEmpty) ...[
@@ -1412,13 +1420,13 @@ class _SearchResultsState extends State<SearchResults> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                               decoration: BoxDecoration(
-                                color: Colors.purple,
+                                color: context.cs.primary,
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
                                 '${_selectedCategories.length}',
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: context.cs.surface,
                                   fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                 ),
@@ -1504,8 +1512,8 @@ class _SearchResultsState extends State<SearchResults> {
                                     : 'Unavailable',
                                 style: TextStyle(
                                   color: book.availableCopies > 0
-                                      ? Colors.green
-                                      : Colors.red,
+                                      ? AppColors.available
+                                      : AppColors.unavailable,
                                 ),
                               ),
                               const Spacer(),
@@ -1577,8 +1585,8 @@ class _CategoryFilterDialogState extends State<_CategoryFilterDialog> {
     final screenHeight = MediaQuery.of(context).size.height;
     return Container(
       constraints: BoxConstraints(maxHeight: screenHeight * 0.75),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: context.cs.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: Column(
@@ -1590,7 +1598,7 @@ class _CategoryFilterDialogState extends State<_CategoryFilterDialog> {
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: Colors.grey.shade300,
+              color: context.cs.outlineVariant,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -1628,11 +1636,11 @@ class _CategoryFilterDialogState extends State<_CategoryFilterDialog> {
                 contentPadding: const EdgeInsets.symmetric(vertical: 10),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: context.cs.outlineVariant),
                 ),
                 enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
-                  borderSide: BorderSide(color: Colors.grey.shade300),
+                  borderSide: BorderSide(color: context.cs.outlineVariant),
                 ),
               ),
             ),
@@ -1660,11 +1668,11 @@ class _CategoryFilterDialogState extends State<_CategoryFilterDialog> {
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                          color: isSelected ? Colors.purple : Colors.black87,
+                          color: isSelected ? context.cs.primary : context.cs.onSurface,
                         ),
                       ),
-                      activeColor: Colors.purple,
-                      checkColor: Colors.white,
+                      activeColor: context.cs.primary,
+                      checkColor: context.cs.surface,
                       controlAffinity: ListTileControlAffinity.trailing,
                       dense: true,
                     );
@@ -1683,7 +1691,7 @@ class _CategoryFilterDialogState extends State<_CategoryFilterDialog> {
               child: FilledButton(
                 onPressed: widget.onApply,
                 style: FilledButton.styleFrom(
-                  backgroundColor: Colors.purple,
+                  backgroundColor: context.cs.primary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -1693,10 +1701,10 @@ class _CategoryFilterDialogState extends State<_CategoryFilterDialog> {
                   widget.selectedCategories.isEmpty
                       ? 'Show All Results'
                       : 'Apply (${widget.selectedCategories.length} selected)',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Colors.white,
+                    color: context.cs.surface,
                   ),
                 ),
               ),
