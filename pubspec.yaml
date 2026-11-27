@@ -52,6 +52,8 @@ dependencies:
   cached_network_image: ^3.4.1
   connectivity_plus: ^6.1.4
   flutter_secure_storage: ^9.2.4
+  google_sign_in: ^6.2.2
+  google_sign_in_web: ^0.12.4+4
   intl_utils: ^2.8.10
   vector_math: ^2.1.4
 
