@@ -13,6 +13,8 @@ const String _refreshTokenKey = 'refresh_token';
 
 const _secureStorage = FlutterSecureStorage();
 
+enum GoogleLoginChallenge { studentPassword, facultyCredentials }
+
 
 class AuthProvider extends ChangeNotifier {
   String? _accessToken;
@@ -54,6 +56,59 @@ class AuthProvider extends ChangeNotifier {
 
     final data = jsonDecode(response.body) as Map<String, dynamic>;
 
+    await _acceptLoginResponse(data);
+  }
+
+  /// POST a verified Google ID token to the backend.
+  ///
+  /// Returns a challenge when the backend requires a Koha password, or null
+  /// after a successful login. Student identity and faculty routing are decided
+  /// by the backend from Google's verified email, never from client input.
+  Future<GoogleLoginChallenge?> googleLogin(
+    String idToken, {
+    String? empId,
+    String? password,
+    bool rememberMe = false,
+  }) async {
+    final response = await http.post(
+      Uri.parse('$_backendBaseUrl/api/v1/auth/google/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'id_token': idToken,
+        if (empId != null && empId.isNotEmpty) 'emp_id': empId,
+        if (password != null) 'password': password,
+        'remember_me': rememberMe,
+      }),
+    );
+
+    if (response.statusCode == 401 || response.statusCode == 428) {
+      final body = jsonDecode(response.body) as Map<String, dynamic>;
+      final detail = body['detail'];
+      final code = detail is Map<String, dynamic> ? detail['code'] : null;
+      if (code == 'password_required') {
+        return GoogleLoginChallenge.studentPassword;
+      }
+      if (code == 'faculty_credentials_required') {
+        return GoogleLoginChallenge.facultyCredentials;
+      }
+      if (code == 'invalid_credentials') {
+        final userType = detail is Map<String, dynamic> ? detail['user_type'] : null;
+        throw userType == 'student'
+            ? 'The Koha password is incorrect.'
+            : 'The employee ID or Koha password is incorrect.';
+      }
+      throw detail is String ? detail : 'Google sign-in was not accepted.';
+    }
+
+    if (response.statusCode != 200) {
+      throw 'Google sign-in failed (${response.statusCode}). Please try again.';
+    }
+
+    await _acceptLoginResponse(jsonDecode(response.body) as Map<String, dynamic>);
+    return null;
+  }
+
+  Future<void> _acceptLoginResponse(Map<String, dynamic> data) async {
     _accessToken = data['access_token'] as String;
     _rollNo = (data['user'] as Map<String, dynamic>)['roll_no'] as String;
     _name = (data['user'] as Map<String, dynamic>)['name'] as String;
@@ -67,7 +122,6 @@ class AuthProvider extends ChangeNotifier {
     // Wipe cached data from any previous user session.
     appCacheStore?.clear();
     HttpCache.instance.clear();
-
     notifyListeners();
   }
 
